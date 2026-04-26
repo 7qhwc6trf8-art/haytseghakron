@@ -60,7 +60,7 @@ import { TbBrandTiktok, TbBrandThreads } from "react-icons/tb";
 // ============================================
 // API CONFIGURATION
 // ============================================
-const API_URL = "http://localhost:3000/api";
+const API_URL = "https://link-server-xu6k.vercel.app/api";
 
 // ============================================
 // TYPES
