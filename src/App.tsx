@@ -808,47 +808,108 @@ const DevicePreview: React.FC = () => {
 // ============================================
 // ANIMATED STATS
 // ============================================
-const AnimatedStat: React.FC<{ value: number; label: string; icon: React.ElementType; delay?: number }> = 
-({ value = 0, label, icon: Icon, delay = 0 }) => {
+const AnimatedStat: React.FC<{ 
+  value: number; 
+  label: string; 
+  icon: React.ElementType; 
+  delay?: number 
+}> = ({ value = 0, label, icon: Icon, delay = 0 }) => {
   const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (value === undefined || value === null) return;
-    
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !hasAnimated && value > 0) {
-        setHasAnimated(true);
-        let start = 0;
-        const duration = 1500;
-        const step = (value / duration) * 16;
-        const timer = setInterval(() => {
-          start += step;
-          if (start >= value) { 
-            setCount(value); 
-            clearInterval(timer); 
-          } else {
-            setCount(Math.floor(start));
-          }
-        }, 16);
-        return () => clearInterval(timer);
-      }
-    }, { threshold: 0.5 });
-    
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, hasAnimated]);
+    // Start animation immediately if value is available
+    if (value > 0 && !hasStarted) {
+      setHasStarted(true);
+      let start = 0;
+      const duration = 1500;
+      const step = (value / duration) * 16;
+      const timer = setInterval(() => {
+        start += step;
+        if (start >= value) {
+          setCount(value);
+          clearInterval(timer);
+        } else {
+          setCount(Math.floor(start));
+        }
+      }, 16);
+      return () => clearInterval(timer);
+    }
+  }, [value, hasStarted]);
 
-  const displayValue = isNaN(count) || count === undefined ? 0 : count;
+  // If value is 0, just show 0
+  const displayValue = value === 0 ? 0 : (isNaN(count) ? 0 : count);
 
   return (
-    <motion.div ref={ref} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay }} className="text-center">
-      <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center">
-        <Icon size={22} className="text-red-400" />
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay }}
+      className="text-center"
+    >
+      <motion.div
+        whileHover={{ scale: 1.1, rotate: 5 }}
+        className="w-14 h-14 mx-auto mb-2 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center"
+      >
+        <Icon size={26} className="text-red-400" />
+      </motion.div>
+      <div className="text-3xl font-black bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
+        {displayValue.toLocaleString()}
       </div>
-      <div className="text-2xl font-bold text-white">{displayValue.toLocaleString()}</div>
-      <div className="text-[10px] uppercase opacity-50 mt-1">{label}</div>
+      <div className="text-[11px] uppercase tracking-wider opacity-50 mt-1">{label}</div>
+    </motion.div>
+  );
+};
+
+const AnimatedStatsCard: React.FC<{ 
+  title: string; 
+  value: number; 
+  icon: React.ElementType; 
+  color: string;
+  delay?: number;
+}> = ({ title, value, icon: Icon, color, delay = 0 }) => {
+  const [count, setCount] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    // Start animation immediately
+    if (value > 0 && !hasStarted) {
+      setHasStarted(true);
+      let start = 0;
+      const duration = 1200;
+      const step = (value / duration) * 16;
+      const timer = setInterval(() => {
+        start += step;
+        if (start >= value) {
+          setCount(value);
+          clearInterval(timer);
+        } else {
+          setCount(Math.floor(start));
+        }
+      }, 16);
+      return () => clearInterval(timer);
+    }
+  }, [value, hasStarted]);
+
+  const displayValue = value === 0 ? 0 : (isNaN(count) ? 0 : count);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay }}
+      whileHover={{ y: -5, scale: 1.02 }}
+      className="p-4 rounded-xl text-center backdrop-blur-sm"
+      style={{
+        background: `linear-gradient(135deg, ${color}15, ${color}05)`,
+        border: `1px solid ${color}25`,
+      }}
+    >
+      <Icon size={24} style={{ color }} className="mx-auto mb-2" />
+      <div className="text-xl font-bold text-white">{displayValue.toLocaleString()}</div>
+      <div className="text-[10px] opacity-60 uppercase tracking-wide">{title}</div>
     </motion.div>
   );
 };
@@ -1123,9 +1184,9 @@ const App: React.FC = () => {
 								whileHover={{ scale: 1.05 }}
 								className="w-24 h-24 mx-auto mb-5 rounded-full bg-gradient-to-br from-red-500 via-orange-500 to-yellow-500 p-1"
 							>
-								<div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center">
-									<span className="text-3xl font-black bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
-										HT
+								<div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+									<span className="text-3xl p-2 font-black bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
+										<img src="/haytseghakron-white-transparent.png" alt="" />
 									</span>
 								</div>
 							</motion.div>
