@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
   MotionConfig,
@@ -15,12 +15,14 @@ import {
   Eye,
   Globe2,
   Heart,
+  Home,
+  Info,
   Languages,
+  Link2,
   Moon,
   RefreshCw,
   Settings2,
   Share,
-  Sparkles,
   Sun,
   Users,
   X,
@@ -63,8 +65,8 @@ const copy = {
     visits: "Այցելություններ",
     unique: "Յուրահատուկ",
     overview: "Ամփոփում",
-    connect: "Սոցիալական հարթակներ",
-    connectHint: "Մեր պաշտոնական էջերը",
+    connect: "Հղումներ",
+    connectHint: "Պաշտոնական սոցիալական էջեր",
     refresh: "Թարմացնել տվյալները",
     refreshing: "Թարմացվում է…",
     community: "Համայնք",
@@ -86,6 +88,8 @@ const copy = {
     official: "Պաշտոնական",
     aboutTitle: "Հայկական միացյալ ցանց",
     aboutBody: "Hay Tseghakron-ը համայնքային թվային հանգույց է՝ ստեղծված հայկական բովանդակությունը, կապերը և նախաձեռնությունները մեկ տեղում միավորելու համար։",
+    done: "Պատրաստ",
+    profile: "Պրոֆիլ",
   },
   en: {
     title: "Hay Tseghakron",
@@ -95,8 +99,8 @@ const copy = {
     visits: "Visits",
     unique: "Unique",
     overview: "Overview",
-    connect: "Social platforms",
-    connectHint: "Our official accounts",
+    connect: "Links",
+    connectHint: "Official social accounts",
     refresh: "Refresh data",
     refreshing: "Refreshing…",
     community: "Community",
@@ -118,6 +122,8 @@ const copy = {
     official: "Official",
     aboutTitle: "Armenian united network",
     aboutBody: "Hay Tseghakron is a community hub created to bring Armenian content, connections and initiatives together in one place.",
+    done: "Done",
+    profile: "Profile",
   },
   ru: {
     title: "Hay Tseghakron",
@@ -127,8 +133,8 @@ const copy = {
     visits: "Посещения",
     unique: "Уникальные",
     overview: "Обзор",
-    connect: "Социальные платформы",
-    connectHint: "Наши официальные страницы",
+    connect: "Ссылки",
+    connectHint: "Официальные социальные страницы",
     refresh: "Обновить данные",
     refreshing: "Обновление…",
     community: "Сообщество",
@@ -150,6 +156,8 @@ const copy = {
     official: "Официальные",
     aboutTitle: "Армянская объединённая сеть",
     aboutBody: "Hay Tseghakron — общественный цифровой центр, созданный для объединения армянского контента, связей и инициатив в одном месте.",
+    done: "Готово",
+    profile: "Профиль",
   },
 } as const;
 
@@ -162,9 +170,11 @@ const socials = [
   { key: "tiktok" as const, name: "TikTok", handle: "@haytseghakron", url: "https://tiktok.com/@haytseghakron", icon: FaTiktok, tone: "tiktok" },
 ];
 
-const iosSpring = { type: "spring", stiffness: 430, damping: 38, mass: 0.72 } as const;
-const sheetSpring = { type: "spring", stiffness: 390, damping: 39, mass: 0.86 } as const;
-const pageEase = [0.2, 0.8, 0.2, 1] as const;
+const tabOrder: TabKey[] = ["home", "social", "about"];
+const iosSpring = { type: "spring", stiffness: 430, damping: 39, mass: 0.72 } as const;
+const pageSpring = { type: "spring", stiffness: 410, damping: 42, mass: 0.82 } as const;
+const sheetSpring = { type: "spring", stiffness: 390, damping: 40, mass: 0.9 } as const;
+const pageEase = [0.22, 0.82, 0.22, 1] as const;
 
 function trackVisit() {
   try {
@@ -188,6 +198,34 @@ async function fetchFollowers(): Promise<FollowersData> {
   return result.followers;
 }
 
+function useIOSViewport() {
+  useEffect(() => {
+    const setViewport = () => {
+      const vv = window.visualViewport;
+      const height = vv?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty("--app-height", `${Math.round(height)}px`);
+    };
+
+    let raf = 0;
+    const scheduleViewport = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(setViewport);
+    };
+
+    setViewport();
+    window.addEventListener("resize", scheduleViewport, { passive: true });
+    window.addEventListener("orientationchange", scheduleViewport, { passive: true });
+    window.visualViewport?.addEventListener("resize", scheduleViewport, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", scheduleViewport);
+      window.removeEventListener("orientationchange", scheduleViewport);
+      window.visualViewport?.removeEventListener("resize", scheduleViewport);
+    };
+  }, []);
+}
+
 function AnimatedNumber({ value }: { value: number }) {
   const reduce = useReducedMotion();
   const raw = useMotionValue(value);
@@ -198,7 +236,7 @@ function AnimatedNumber({ value }: { value: number }) {
       raw.set(value);
       return;
     }
-    const controls = animate(raw, value, { duration: 0.55, ease: pageEase });
+    const controls = animate(raw, value, { duration: 0.48, ease: pageEase });
     return controls.stop;
   }, [raw, reduce, value]);
 
@@ -212,7 +250,7 @@ function IconButton({ label, children, onClick }: React.PropsWithChildren<{ labe
       className="ios-icon-button"
       aria-label={label}
       onClick={onClick}
-      whileTap={{ scale: 0.88 }}
+      whileTap={{ scale: 0.9 }}
       transition={iosSpring}
     >
       {children}
@@ -220,49 +258,58 @@ function IconButton({ label, children, onClick }: React.PropsWithChildren<{ labe
   );
 }
 
-function TopNavigation({ title, onShare, onSettings }: { title: string; onShare: () => void; onSettings: () => void }) {
+function NavigationBar({ title, onShare, onSettings }: { title: string; onShare: () => void; onSettings: () => void }) {
   return (
-    <header className="top-navigation">
-      <div className="top-navigation-inner">
-        <motion.div className="nav-brand" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.32, ease: pageEase }}>
-          <div className="nav-logo"><img src="/haytseghakron-white-transparent.png" alt="" /></div>
+    <header className="navigation-bar">
+      <div className="navigation-inner">
+        <motion.div className="navigation-brand" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
+          <span className="navigation-logo"><img src="/haytseghakron-white-transparent.png" alt="" /></span>
           <strong>{title}</strong>
         </motion.div>
-        <div className="nav-actions">
-          <IconButton label="Share" onClick={onShare}><Share size={19} strokeWidth={2.2} /></IconButton>
-          <IconButton label="Settings" onClick={onSettings}><Settings2 size={19} strokeWidth={2.2} /></IconButton>
+        <div className="navigation-actions">
+          <IconButton label="Share" onClick={onShare}><Share size={19} strokeWidth={2.15} /></IconButton>
+          <IconButton label="Settings" onClick={onSettings}><Settings2 size={19} strokeWidth={2.15} /></IconButton>
         </div>
       </div>
     </header>
   );
 }
 
-function ProfileHero({ title, subtitle, live }: { title: string; subtitle: string; live: string }) {
-  const reduce = useReducedMotion();
+function LargeTitle({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) {
   return (
-    <section className="profile-hero">
-      <motion.div
-        className="profile-avatar"
-        initial={reduce ? false : { opacity: 0, scale: 0.84, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ ...iosSpring, delay: 0.04 }}
-      >
-        <img src="/haytseghakron-white-transparent.png" alt="Hay Tseghakron" />
-        <span className="presence-dot" />
-      </motion.div>
-      <motion.h1 initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.34, delay: 0.08, ease: pageEase }}>{title}</motion.h1>
-      <motion.p initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.34, delay: 0.12, ease: pageEase }}>{subtitle}</motion.p>
-      <motion.div className="status-pill" initial={reduce ? false : { opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...iosSpring, delay: 0.16 }}>
-        <span className="status-dot" />
-        {live}
-      </motion.div>
-    </section>
+    <div className="large-title-block">
+      {eyebrow && <span className="large-title-eyebrow">{eyebrow}</span>}
+      <h1>{title}</h1>
+      {subtitle && <p>{subtitle}</p>}
+    </div>
   );
 }
 
-function SectionTitle({ title, subtitle, trailing }: { title: string; subtitle?: string; trailing?: string }) {
+function ProfileHeader({ title, subtitle, live }: { title: string; subtitle: string; live: string }) {
+  const reduce = useReducedMotion();
   return (
-    <div className="section-title">
+    <motion.section
+      className="profile-header"
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.34, ease: pageEase }}
+    >
+      <div className="profile-avatar">
+        <img src="/haytseghakron-white-transparent.png" alt="Hay Tseghakron" />
+        <span className="presence-dot" />
+      </div>
+      <div className="profile-copy">
+        <h2>{title}</h2>
+        <p>{subtitle}</p>
+        <span className="status-line"><i />{live}</span>
+      </div>
+    </motion.section>
+  );
+}
+
+function SectionHeader({ title, subtitle, trailing }: { title: string; subtitle?: string; trailing?: string }) {
+  return (
+    <div className="section-header">
       <div>
         <h2>{title}</h2>
         {subtitle && <p>{subtitle}</p>}
@@ -272,40 +319,36 @@ function SectionTitle({ title, subtitle, trailing }: { title: string; subtitle?:
   );
 }
 
-function Overview({ followers, dashboard, label }: { followers: FollowersData; dashboard: DashboardData | null; label: string }) {
-  const total = Object.values(followers).reduce((sum, v) => sum + (v || 0), 0);
+function Overview({ followers, dashboard, labels }: { followers: FollowersData; dashboard: DashboardData | null; labels: [string, string, string] }) {
+  const total = Object.values(followers).reduce((sum, value) => sum + (value || 0), 0);
   const items = [
-    { icon: Users, value: total, label: label.split("|")[0], tint: "orange" },
-    { icon: Eye, value: dashboard?.visits.total ?? 0, label: label.split("|")[1], tint: "blue" },
-    { icon: BarChart3, value: dashboard?.visits.unique ?? 0, label: label.split("|")[2], tint: "purple" },
+    { icon: Users, value: total, label: labels[0], tone: "orange" },
+    { icon: Eye, value: dashboard?.visits.total ?? 0, label: labels[1], tone: "blue" },
+    { icon: BarChart3, value: dashboard?.visits.unique ?? 0, label: labels[2], tone: "purple" },
   ];
 
   return (
-    <motion.div
-      className="ios-group overview-group"
-      initial="hidden"
-      animate="show"
-      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.045, delayChildren: 0.12 } } }}
-    >
-      {items.map(({ icon: Icon, value, label: itemLabel, tint }) => (
-        <motion.div key={itemLabel} className="overview-item" variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: pageEase } } }}>
-          <div className={`overview-icon ${tint}`}><Icon size={17} strokeWidth={2.4} /></div>
-          <strong><AnimatedNumber value={value} /></strong>
-          <span>{itemLabel}</span>
+    <div className="ios-group overview-group">
+      {items.map(({ icon: Icon, value, label, tone }, index) => (
+        <motion.div
+          className="overview-row"
+          key={label}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.24, delay: index * 0.035, ease: pageEase }}
+        >
+          <span className={`row-symbol ${tone}`}><Icon size={19} strokeWidth={2.2} /></span>
+          <span className="overview-label">{label}</span>
+          <strong className="overview-value"><AnimatedNumber value={value} /></strong>
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
 function SocialList({ followers }: { followers: FollowersData }) {
   return (
-    <motion.div
-      className="ios-group social-list"
-      initial="hidden"
-      animate="show"
-      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.035 } } }}
-    >
+    <motion.div className="ios-group social-list" initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.025 } } }}>
       {socials.map((item) => {
         const Icon = item.icon;
         const count = item.key === "facebook" ? 0 : followers[item.key];
@@ -316,15 +359,12 @@ function SocialList({ followers }: { followers: FollowersData }) {
             target="_blank"
             rel="noreferrer"
             className="ios-row social-row"
-            variants={{ hidden: { opacity: 0, x: 12 }, show: { opacity: 1, x: 0, transition: { duration: 0.26, ease: pageEase } } }}
-            whileTap={{ scale: 0.987 }}
+            variants={{ hidden: { opacity: 0, x: 12 }, show: { opacity: 1, x: 0, transition: { duration: 0.23, ease: pageEase } } }}
+            whileTap={{ scale: 0.985 }}
             transition={iosSpring}
           >
-            <motion.span className={`social-icon ${item.tone}`} whileTap={{ scale: 0.88 }} transition={iosSpring}><Icon size={20} /></motion.span>
-            <span className="row-copy">
-              <strong>{item.name}</strong>
-              <small>{item.handle}</small>
-            </span>
+            <span className={`social-icon ${item.tone}`}><Icon size={20} /></span>
+            <span className="row-copy"><strong>{item.name}</strong><small>{item.handle}</small></span>
             <span className="row-trailing">
               {count > 0 && <small>{count.toLocaleString()}</small>}
               <ChevronRight size={18} strokeWidth={2.1} />
@@ -338,12 +378,12 @@ function SocialList({ followers }: { followers: FollowersData }) {
 
 function RefreshButton({ loading, onClick, idle, busy }: { loading: boolean; onClick: () => void; idle: string; busy: string }) {
   return (
-    <motion.button type="button" className="refresh-button" onClick={onClick} disabled={loading} whileTap={{ scale: 0.975 }} transition={iosSpring}>
-      <motion.span animate={loading ? { rotate: 360 } : { rotate: 0 }} transition={loading ? { duration: 0.7, repeat: Infinity, ease: "linear" } : iosSpring}>
-        <RefreshCw size={17} strokeWidth={2.4} />
+    <motion.button type="button" className="refresh-button" onClick={onClick} disabled={loading} whileTap={{ scale: 0.98 }} transition={iosSpring}>
+      <motion.span animate={loading ? { rotate: 360 } : { rotate: 0 }} transition={loading ? { duration: 0.72, repeat: Infinity, ease: "linear" } : iosSpring}>
+        <RefreshCw size={17} strokeWidth={2.35} />
       </motion.span>
       <AnimatePresence mode="wait" initial={false}>
-        <motion.span key={loading ? "busy" : "idle"} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.14 }}>
+        <motion.span key={loading ? "busy" : "idle"} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}>
           {loading ? busy : idle}
         </motion.span>
       </AnimatePresence>
@@ -353,15 +393,11 @@ function RefreshButton({ loading, onClick, idle, busy }: { loading: boolean; onC
 
 function CommunityCard({ eyebrow, title, body, active247, growing, quote }: { eyebrow: string; title: string; body: string; active247: string; growing: string; quote: string }) {
   return (
-    <motion.section className="community-card" initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.38, ease: pageEase }}>
-      <div className="community-mark"><Sparkles size={17} /></div>
+    <motion.section className="community-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: pageEase }}>
       <span className="community-eyebrow">{eyebrow}</span>
       <h3>{title}</h3>
       <p>{body}</p>
-      <div className="community-meta">
-        <span><i />{active247}</span>
-        <span><Users size={14} />{growing}</span>
-      </div>
+      <div className="community-meta"><span><i />{active247}</span><span><Users size={14} />{growing}</span></div>
       <blockquote>“{quote}”</blockquote>
     </motion.section>
   );
@@ -369,38 +405,41 @@ function CommunityCard({ eyebrow, title, body, active247, growing, quote }: { ey
 
 function AboutPanel({ title, body }: { title: string; body: string }) {
   return (
-    <motion.section className="ios-group about-panel" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.32, ease: pageEase }}>
-      <div className="about-symbol"><Globe2 size={24} strokeWidth={2.2} /></div>
-      <h2>{title}</h2>
-      <p>{body}</p>
-      <div className="about-foot"><Heart size={14} fill="currentColor" /> Armenian United Network</div>
-    </motion.section>
+    <section className="ios-group about-panel">
+      <div className="about-hero">
+        <span className="about-symbol"><Globe2 size={25} strokeWidth={2.15} /></span>
+        <h2>{title}</h2>
+        <p>{body}</p>
+      </div>
+      <div className="about-row"><Heart size={17} fill="currentColor" /><span>Armenian United Network</span></div>
+    </section>
   );
 }
 
-function TabBar({ active, setActive, labels }: { active: TabKey; setActive: (tab: TabKey) => void; labels: Record<TabKey, string> }) {
+function TabBar({ active, onSelect, labels }: { active: TabKey; onSelect: (tab: TabKey) => void; labels: Record<TabKey, string> }) {
   const tabs = [
-    { key: "home" as const, icon: Sparkles },
-    { key: "social" as const, icon: Users },
-    { key: "about" as const, icon: Globe2 },
+    { key: "home" as const, icon: Home },
+    { key: "social" as const, icon: Link2 },
+    { key: "about" as const, icon: Info },
   ];
 
   return (
-    <motion.nav className="ios-tabbar" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.36, delay: 0.18, ease: pageEase }}>
-      <div className="ios-tabbar-inner">
+    <div className="tabbar-shell">
+      <motion.nav className="liquid-tabbar" initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ ...iosSpring, delay: 0.12 }}>
         {tabs.map(({ key, icon: Icon }) => {
           const selected = active === key;
           return (
-            <motion.button type="button" key={key} className={selected ? "tab-item selected" : "tab-item"} onClick={() => setActive(key)} whileTap={{ scale: 0.88 }} transition={iosSpring}>
-              <motion.span animate={{ y: selected ? -1 : 0, scale: selected ? 1.05 : 1 }} transition={iosSpring}>
-                <Icon size={22} strokeWidth={selected ? 2.6 : 2.2} />
-              </motion.span>
-              <span>{labels[key]}</span>
+            <motion.button type="button" key={key} className={`tab-item${selected ? " selected" : ""}`} onClick={() => onSelect(key)} whileTap={{ scale: 0.9 }} transition={iosSpring}>
+              {selected && <motion.span className="tab-selection" layoutId="tab-selection" transition={iosSpring} />}
+              <span className="tab-content">
+                <motion.span className="tab-icon" animate={{ y: selected ? -1 : 0, scale: selected ? 1.03 : 1 }} transition={iosSpring}><Icon size={22} strokeWidth={selected ? 2.5 : 2.15} /></motion.span>
+                <span className="tab-label">{labels[key]}</span>
+              </span>
             </motion.button>
           );
         })}
-      </div>
-    </motion.nav>
+      </motion.nav>
+    </div>
   );
 }
 
@@ -410,10 +449,11 @@ function AppearanceControl({ value, onChange, labels }: { value: Appearance; onC
     { key: "dark" as const, icon: Moon },
     { key: "system" as const, icon: Settings2 },
   ];
+
   return (
     <div className="segmented-control">
       {options.map(({ key, icon: Icon }) => (
-        <motion.button type="button" key={key} className={value === key ? "selected" : ""} onClick={() => onChange(key)} whileTap={{ scale: 0.96 }} transition={iosSpring}>
+        <motion.button type="button" key={key} className={value === key ? "selected" : ""} onClick={() => onChange(key)} whileTap={{ scale: 0.97 }} transition={iosSpring}>
           {value === key && <motion.span className="segment-selection" layoutId="appearance-selection" transition={iosSpring} />}
           <span className="segment-label"><Icon size={14} />{labels[key]}</span>
         </motion.button>
@@ -426,9 +466,9 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
   open: boolean;
   onClose: () => void;
   language: Language;
-  setLanguage: (l: Language) => void;
+  setLanguage: (language: Language) => void;
   appearance: Appearance;
-  setAppearance: (a: Appearance) => void;
+  setAppearance: (appearance: Appearance) => void;
   t: (key: keyof typeof copy.en) => string;
 }) {
   const languages: Array<{ key: Language; title: string; subtitle: string }> = [
@@ -441,30 +481,27 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
     <AnimatePresence>
       {open && (
         <>
-          <motion.button className="sheet-backdrop" aria-label="Close settings" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} />
+          <motion.button className="sheet-backdrop" aria-label="Close settings" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} />
           <motion.aside
             className="settings-sheet"
             role="dialog"
             aria-modal="true"
             aria-label={t("settings")}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
+            initial={{ y: "100%", scale: 0.985 }}
+            animate={{ y: 0, scale: 1 }}
+            exit={{ y: "100%", scale: 0.985 }}
             transition={sheetSpring}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.22 }}
+            dragElastic={{ top: 0, bottom: 0.18 }}
             onDragEnd={(_, info) => {
-              if (info.offset.y > 110 || info.velocity.y > 700) onClose();
+              if (info.offset.y > 105 || info.velocity.y > 680) onClose();
             }}
           >
             <div className="sheet-grabber" />
-            <div className="sheet-header">
-              <div>
-                <small>Hay Tseghakron</small>
-                <h2>{t("settings")}</h2>
-              </div>
-              <IconButton label="Close" onClick={onClose}><X size={18} strokeWidth={2.3} /></IconButton>
+            <div className="sheet-navigation">
+              <strong>{t("settings")}</strong>
+              <motion.button type="button" className="done-button" onClick={onClose} whileTap={{ scale: 0.94 }} transition={iosSpring}>{t("done")}</motion.button>
             </div>
 
             <section className="settings-section">
@@ -477,12 +514,12 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
               <div className="ios-group settings-list">
                 {languages.map((item) => (
                   <motion.button type="button" key={item.key} className="ios-row settings-row" onClick={() => setLanguage(item.key)} whileTap={{ scale: 0.988 }} transition={iosSpring}>
-                    <span className="language-symbol"><Languages size={18} strokeWidth={2.25} /></span>
+                    <span className="language-symbol"><Languages size={18} strokeWidth={2.2} /></span>
                     <span className="row-copy"><strong>{item.title}</strong><small>{item.subtitle}</small></span>
                     <AnimatePresence initial={false}>
                       {language === item.key && (
-                        <motion.span className="language-check" initial={{ opacity: 0, scale: 0.65 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.65 }} transition={iosSpring}>
-                          <Check size={15} strokeWidth={3} />
+                        <motion.span className="language-check" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={iosSpring}>
+                          <Check size={14} strokeWidth={3} />
                         </motion.span>
                       )}
                     </AnimatePresence>
@@ -497,16 +534,32 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
   );
 }
 
-function PageTransition({ id, children }: React.PropsWithChildren<{ id: string }>) {
+const pageVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "100%" : direction < 0 ? "-28%" : 0,
+    opacity: direction === 0 ? 0 : 1,
+    scale: direction === 0 ? 0.992 : 1,
+  }),
+  center: { x: 0, opacity: 1, scale: 1 },
+  exit: (direction: number) => ({
+    x: direction > 0 ? "-28%" : direction < 0 ? "100%" : 0,
+    opacity: direction === 0 ? 0 : 1,
+    scale: direction === 0 ? 0.992 : 1,
+  }),
+};
+
+function PageTransition({ id, direction, children }: React.PropsWithChildren<{ id: string; direction: number }>) {
   const reduce = useReducedMotion();
   return (
     <motion.div
       key={id}
-      className="page-content"
-      initial={reduce ? false : { opacity: 0, x: 14 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={reduce ? undefined : { opacity: 0, x: -10 }}
-      transition={{ duration: 0.25, ease: pageEase }}
+      className="ios-page"
+      custom={direction}
+      variants={reduce ? undefined : pageVariants}
+      initial={reduce ? false : "enter"}
+      animate={reduce ? undefined : "center"}
+      exit={reduce ? undefined : "exit"}
+      transition={reduce ? { duration: 0 } : pageSpring}
     >
       {children}
     </motion.div>
@@ -514,11 +567,14 @@ function PageTransition({ id, children }: React.PropsWithChildren<{ id: string }
 }
 
 export default function App() {
+  useIOSViewport();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem("ht-language") as Language) || "hy");
-  const [appearance, setAppearance] = useState<Appearance>(() => (localStorage.getItem("ht-appearance") as Appearance) || "dark");
+  const [appearance, setAppearance] = useState<Appearance>(() => (localStorage.getItem("ht-appearance") as Appearance) || "system");
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("home");
+  const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
   const [followers, setFollowers] = useState<FollowersData>({ instagram: 1482, telegram: 251, twitter: 2, tiktok: 459, threads: 0 });
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -538,14 +594,18 @@ export default function App() {
     document.documentElement.lang = language;
     localStorage.setItem("ht-language", language);
     localStorage.setItem("ht-appearance", appearance);
+
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    themeMeta?.setAttribute("content", isDark ? "#000000" : "#f2f2f7");
   }, [appearance, isDark, language]);
 
   useEffect(() => {
-    if (!settingsOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+    const previousOverflow = scroller.style.overflowY;
+    if (settingsOpen) scroller.style.overflowY = "hidden";
     return () => {
-      document.body.style.overflow = previousOverflow;
+      scroller.style.overflowY = previousOverflow;
     };
   }, [settingsOpen]);
 
@@ -582,8 +642,20 @@ export default function App() {
       if (navigator.share) await navigator.share({ title: t("title"), text: t("subtitle"), url: window.location.href });
       else await navigator.clipboard.writeText(window.location.href);
     } catch {
-      // Dismissing the native share sheet is expected.
+      // Native share cancellation is expected.
     }
+  };
+
+  const selectTab = (next: TabKey) => {
+    if (next === activeTab) {
+      scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const currentIndex = tabOrder.indexOf(activeTab);
+    const nextIndex = tabOrder.indexOf(next);
+    setDirection(nextIndex > currentIndex ? 1 : -1);
+    setActiveTab(next);
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "auto" }));
   };
 
   const labels = useMemo(() => ({ home: t("home"), social: t("social"), about: t("about") }), [language]);
@@ -591,59 +663,66 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user" transition={iosSpring}>
       <div className="app-shell">
-        <TopNavigation title={t("title")} onShare={share} onSettings={() => setSettingsOpen(true)} />
+        <NavigationBar title={t("title")} onShare={share} onSettings={() => setSettingsOpen(true)} />
 
-        <main className="phone-canvas">
-          <ProfileHero title={t("title")} subtitle={t("subtitle")} live={t("live")} />
+        <div className="app-scroll" ref={scrollRef}>
+          <main className="phone-canvas">
+            <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+              {activeTab === "home" && (
+                <PageTransition id="home" direction={direction}>
+                  <LargeTitle title={t("home")} subtitle={t("subtitle")} />
+                  <ProfileHeader title={t("title")} subtitle={t("subtitle")} live={t("live")} />
 
-          <AnimatePresence mode="wait" initial={false}>
-            {activeTab === "home" && (
-              <PageTransition id="home">
-                <section className="content-section first-section">
-                  <SectionTitle title={t("overview")} />
-                  <Overview followers={followers} dashboard={dashboard} label={`${t("followers")}|${t("visits")}|${t("unique")}`} />
-                </section>
+                  <section className="content-section">
+                    <SectionHeader title={t("overview")} />
+                    <Overview followers={followers} dashboard={dashboard} labels={[t("followers"), t("visits"), t("unique")]} />
+                  </section>
 
-                <section className="content-section">
-                  <SectionTitle title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
-                  <SocialList followers={followers} />
-                  <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
-                </section>
+                  <section className="content-section">
+                    <SectionHeader title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
+                    <SocialList followers={followers} />
+                    <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
+                  </section>
 
-                <section className="content-section">
-                  <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
-                </section>
-              </PageTransition>
-            )}
+                  <section className="content-section">
+                    <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
+                  </section>
+                </PageTransition>
+              )}
 
-            {activeTab === "social" && (
-              <PageTransition id="social">
-                <section className="content-section first-section standalone-section">
-                  <SectionTitle title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
-                  <SocialList followers={followers} />
-                </section>
-              </PageTransition>
-            )}
+              {activeTab === "social" && (
+                <PageTransition id="social" direction={direction}>
+                  <LargeTitle title={t("social")} subtitle={t("connectHint")} />
+                  <section className="content-section first-section">
+                    <SocialList followers={followers} />
+                    <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
+                  </section>
+                </PageTransition>
+              )}
 
-            {activeTab === "about" && (
-              <PageTransition id="about">
-                <section className="content-section first-section standalone-section">
-                  <AboutPanel title={t("aboutTitle")} body={t("aboutBody")} />
-                  <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
-                </section>
-              </PageTransition>
-            )}
-          </AnimatePresence>
+              {activeTab === "about" && (
+                <PageTransition id="about" direction={direction}>
+                  <LargeTitle title={t("about")} subtitle={t("title")} />
+                  <section className="content-section first-section">
+                    <AboutPanel title={t("aboutTitle")} body={t("aboutBody")} />
+                  </section>
+                  <section className="content-section">
+                    <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
+                  </section>
+                </PageTransition>
+              )}
+            </AnimatePresence>
 
-          <footer className="footer">
-            <span>© {new Date().getFullYear()} Hay Tseghakron</span>
-            {dashboard?.followers.lastUpdate && (
-              <span>{t("updated")} · {new Date(dashboard.followers.lastUpdate).toLocaleTimeString(language === "hy" ? "hy-AM" : language === "ru" ? "ru-RU" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-            )}
-          </footer>
-        </main>
+            <footer className="footer">
+              <span>© {new Date().getFullYear()} Hay Tseghakron</span>
+              {dashboard?.followers.lastUpdate && (
+                <span>{t("updated")} · {new Date(dashboard.followers.lastUpdate).toLocaleTimeString(language === "hy" ? "hy-AM" : language === "ru" ? "ru-RU" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+              )}
+            </footer>
+          </main>
+        </div>
 
-        <TabBar active={activeTab} setActive={setActiveTab} labels={labels} />
+        <TabBar active={activeTab} onSelect={selectTab} labels={labels} />
         <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} language={language} setLanguage={setLanguage} appearance={appearance} setAppearance={setAppearance} t={t} />
       </div>
     </MotionConfig>
