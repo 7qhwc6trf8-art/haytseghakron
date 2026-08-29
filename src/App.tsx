@@ -1,12 +1,12 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
   MotionConfig,
   animate,
   motion,
-  useReducedMotion,
+  useDragControls,
   useMotionValue,
+  useReducedMotion,
   useTransform,
 } from "framer-motion";
 import {
@@ -229,84 +229,6 @@ function useIOSViewport() {
       window.removeEventListener("orientationchange", scheduleViewport);
       window.visualViewport?.removeEventListener("resize", scheduleViewport);
     };
-  }, []);
-}
-
-function useNavigationPerformanceMode() {
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.dataset.htNavPerf = "true";
-    style.textContent = `
-      /* Navigation is rendered by the browser as compositor snapshots instead
-         of two live React page trees. This is dramatically smoother on iOS. */
-      .stack-viewport { view-transition-name: ht-page; }
-      .tabbar-shell { view-transition-name: none !important; }
-
-      ::view-transition-group(ht-page) {
-        animation-duration: 210ms;
-        animation-timing-function: cubic-bezier(.32,.72,0,1);
-      }
-      ::view-transition-image-pair(ht-page) {
-        isolation: isolate;
-      }
-      ::view-transition-old(ht-page),
-      ::view-transition-new(ht-page) {
-        animation-duration: 210ms;
-        animation-timing-function: cubic-bezier(.32,.72,0,1);
-        backface-visibility: hidden;
-        transform: translateZ(0);
-      }
-
-      html[data-nav-dir="forward"]::view-transition-old(ht-page) {
-        animation-name: ht-old-forward;
-      }
-      html[data-nav-dir="forward"]::view-transition-new(ht-page) {
-        animation-name: ht-new-forward;
-      }
-      html[data-nav-dir="back"]::view-transition-old(ht-page) {
-        animation-name: ht-old-back;
-      }
-      html[data-nav-dir="back"]::view-transition-new(ht-page) {
-        animation-name: ht-new-back;
-      }
-
-      @keyframes ht-old-forward {
-        from { transform: translate3d(0,0,0); }
-        to   { transform: translate3d(-18%,0,0); }
-      }
-      @keyframes ht-new-forward {
-        from { transform: translate3d(100%,0,0); }
-        to   { transform: translate3d(0,0,0); }
-      }
-      @keyframes ht-old-back {
-        from { transform: translate3d(0,0,0); }
-        to   { transform: translate3d(100%,0,0); }
-      }
-      @keyframes ht-new-back {
-        from { transform: translate3d(-18%,0,0); }
-        to   { transform: translate3d(0,0,0); }
-      }
-
-      /* Fallback path when View Transitions are unavailable. */
-      .ht-fallback-nav {
-        will-change: transform;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-      }
-
-      html.ht-nav-moving .screen-surface *,
-      html.ht-nav-moving .screen-surface {
-        animation-play-state: paused !important;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        ::view-transition-group(ht-page),
-        ::view-transition-old(ht-page),
-        ::view-transition-new(ht-page) { animation-duration: 1ms !important; }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => style.remove();
   }, []);
 }
 
@@ -605,6 +527,22 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
   );
 }
 
+const navEase = [0.32, 0.72, 0, 1] as const;
+// Keep navigation on the compositor: transform only, no full-screen opacity/filter animation.
+const navTransition = { duration: 0.285, ease: navEase } as const;
+
+const stackVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "100%" : direction < 0 ? "-24%" : 0,
+    zIndex: direction > 0 ? 3 : direction < 0 ? 1 : 2,
+  }),
+  center: { x: 0, zIndex: 2 },
+  exit: (direction: number) => ({
+    x: direction > 0 ? "-24%" : direction < 0 ? "100%" : 0,
+    zIndex: direction < 0 ? 3 : 1,
+  }),
+};
+
 type Translator = (key: keyof typeof copy.en) => string;
 
 type ScreenSurfaceProps = {
@@ -622,7 +560,7 @@ type ScreenSurfaceProps = {
   onScroll?: (tab: TabKey, top: number) => void;
 };
 
-const ScreenSurface = memo(function ScreenSurface({
+function ScreenSurface({
   tab,
   labels,
   followers,
@@ -706,41 +644,115 @@ const ScreenSurface = memo(function ScreenSurface({
 
     </div>
   );
-});
+}
 
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => void | Promise<void>) => { finished: Promise<void> };
+type InteractiveScreenProps = ScreenSurfaceProps & {
+  previousTab: TabKey | null;
+  previousScrollTop: number;
+  onSwipeBack: (tab: TabKey) => void;
 };
 
-function runPageTransition(direction: "forward" | "back", update: () => void) {
-  const root = document.documentElement;
-  root.dataset.navDir = direction;
-  root.classList.add("ht-nav-moving");
+function InteractiveScreen({ previousTab, previousScrollTop, onSwipeBack, ...surfaceProps }: InteractiveScreenProps) {
+  const reduce = useReducedMotion();
+  const dragControls = useDragControls();
+  const foregroundX = useMotionValue(0);
+  const [gestureActive, setGestureActive] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => Math.max(320, window.innerWidth));
 
-  const doc = document as ViewTransitionDocument;
-  if (typeof doc.startViewTransition === "function") {
-    const transition = doc.startViewTransition(() => {
-      flushSync(update);
-    });
-    transition.finished.finally(() => {
-      root.classList.remove("ht-nav-moving");
-      delete root.dataset.navDir;
-    });
-    return;
-  }
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(Math.max(320, window.innerWidth));
+    window.addEventListener("resize", updateWidth, { passive: true });
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
-  // Older Safari fallback: update instantly. Avoiding JS-per-frame animation is
-  // still smoother than dragging a large live React tree with Framer Motion.
-  flushSync(update);
-  requestAnimationFrame(() => {
-    root.classList.remove("ht-nav-moving");
-    delete root.dataset.navDir;
-  });
+  const progress = useTransform(foregroundX, [0, viewportWidth], [0, 1]);
+  const underlayX = useTransform(progress, (value) => -viewportWidth * 0.27 * (1 - Math.max(0, Math.min(1, value))));
+  const dimOpacity = useTransform(progress, [0, 1], [0.12, 0]);
+
+  const cancelGesture = () => {
+    animate(foregroundX, 0, { type: "spring", stiffness: 600, damping: 52, mass: 0.68 }).then(() => {
+      setGestureActive(false);
+    });
+  };
+
+  const finishGesture = (target: TabKey) => {
+    animate(foregroundX, viewportWidth, { duration: 0.16, ease: navEase }).then(() => {
+      onSwipeBack(target);
+    });
+  };
+
+  return (
+    <div className="interactive-screen">
+      {previousTab && (
+        <motion.div
+          className={`gesture-underlay${gestureActive ? " is-visible" : ""}`}
+          style={{ x: underlayX }}
+          aria-hidden="true"
+        >
+          <ScreenSurface
+            {...surfaceProps}
+            tab={previousTab}
+            scrollTop={previousScrollTop}
+            registerScroll={undefined}
+            onScroll={undefined}
+          />
+          <motion.div className="gesture-dimmer" style={{ opacity: dimOpacity }} />
+        </motion.div>
+      )}
+
+      <motion.div
+        className="gesture-foreground"
+        style={{ x: foregroundX }}
+        drag={!reduce && previousTab ? "x" : false}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ left: 0, right: viewportWidth }}
+        dragElastic={0}
+        dragMomentum={false}
+        onDragStart={() => setGestureActive(true)}
+        onDragEnd={(_, info) => {
+          if (!previousTab) return;
+          const shouldFinish = info.offset.x > viewportWidth * 0.3 || info.velocity.x > 680;
+          if (shouldFinish) finishGesture(previousTab);
+          else cancelGesture();
+        }}
+      >
+        <ScreenSurface {...surfaceProps} />
+        {previousTab && !reduce && (
+          <div
+            className="swipe-back-edge"
+            aria-hidden="true"
+            onPointerDown={(event) => {
+              if (event.button !== 0 && event.pointerType === "mouse") return;
+              setGestureActive(true);
+              dragControls.start(event);
+            }}
+          />
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+function StackTransition({ direction, children }: React.PropsWithChildren<{ direction: number }>) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className="stack-page-layer"
+      custom={direction}
+      variants={reduce ? undefined : stackVariants}
+      initial={reduce ? false : "enter"}
+      animate={reduce ? undefined : "center"}
+      exit={reduce ? undefined : "exit"}
+      transition={reduce || direction === 0 ? { duration: 0 } : navTransition}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 export default function App() {
   useIOSViewport();
-  useNavigationPerformanceMode();
   const scrollRefs = useRef<Partial<Record<TabKey, HTMLDivElement | null>>>({});
   const scrollPositions = useRef<Record<TabKey, number>>({ home: 0, social: 0, about: 0 });
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem("ht-language") as Language) || "hy");
@@ -748,11 +760,13 @@ export default function App() {
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("home");
+  const [direction, setDirection] = useState(0);
+  const [navHistory, setNavHistory] = useState<TabKey[]>(["home"]);
   const [loading, setLoading] = useState(false);
   const [followers, setFollowers] = useState<FollowersData>({ instagram: 1482, telegram: 251, twitter: 2, tiktok: 459, threads: 0 });
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
 
-  const t: Translator = useCallback((key) => copy[language][key] as string, [language]);
+  const t: Translator = (key) => copy[language][key] as string;
   const isDark = appearance === "dark" || (appearance === "system" && systemDark);
 
   useEffect(() => {
@@ -800,7 +814,7 @@ export default function App() {
       .catch(() => undefined);
   }, []);
 
-  const refresh = useCallback(async () => {
+  const refresh = async () => {
     if (loading) return;
     setLoading(true);
     try {
@@ -808,18 +822,18 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  };
 
-  const share = useCallback(async () => {
+  const share = async () => {
     try {
       if (navigator.share) await navigator.share({ title: t("title"), text: t("subtitle"), url: window.location.href });
       else await navigator.clipboard.writeText(window.location.href);
     } catch {
       // Native share cancellation is expected.
     }
-  }, [t]);
+  };
 
-  const selectTab = useCallback((next: TabKey) => {
+  const selectTab = (next: TabKey) => {
     if (next === activeTab) {
       lightHaptic();
       scrollRefs.current[activeTab]?.scrollTo({ top: 0, behavior: "smooth" });
@@ -830,27 +844,36 @@ export default function App() {
     lightHaptic();
     const currentIndex = tabOrder.indexOf(activeTab);
     const nextIndex = tabOrder.indexOf(next);
-    const navDirection = nextIndex > currentIndex ? "forward" : "back";
+    setDirection(nextIndex > currentIndex ? 1 : -1);
 
-    runPageTransition(navDirection, () => {
-      setActiveTab(next);
+    setNavHistory((history) => {
+      const existingIndex = history.lastIndexOf(next);
+      if (existingIndex >= 0) return history.slice(0, existingIndex + 1);
+      return [...history, next];
     });
-  }, [activeTab]);
+
+    setActiveTab(next);
+  };
+
+  const swipeBack = (target: TabKey) => {
+    lightHaptic();
+    setDirection(0);
+    setNavHistory((history) => (history.length > 1 ? history.slice(0, -1) : history));
+    setActiveTab(target);
+  };
 
   const labels = useMemo(() => ({ home: t("home"), social: t("social"), about: t("about") }), [language]);
+  const previousTab = navHistory.length > 1 ? navHistory[navHistory.length - 2] : null;
 
-  const registerScroll = useCallback((tab: TabKey, node: HTMLDivElement | null) => {
+  const registerScroll = (tab: TabKey, node: HTMLDivElement | null) => {
     scrollRefs.current[tab] = node;
-  }, []);
+  };
 
-  const rememberScroll = useCallback((tab: TabKey, top: number) => {
+  const rememberScroll = (tab: TabKey, top: number) => {
     scrollPositions.current[tab] = top;
-  }, []);
+  };
 
-
-  const openSettings = useCallback(() => setSettingsOpen(true), []);
-
-  const surfaceProps: Omit<ScreenSurfaceProps, "tab"> = {
+  const surfaceProps: Omit<InteractiveScreenProps, "tab" | "previousTab" | "previousScrollTop" | "onSwipeBack"> = {
     labels,
     followers,
     dashboard,
@@ -858,7 +881,7 @@ export default function App() {
     refresh,
     t,
     share,
-    onSettings: openSettings,
+    onSettings: () => setSettingsOpen(true),
     scrollTop: scrollPositions.current[activeTab],
     registerScroll,
     onScroll: rememberScroll,
@@ -868,11 +891,18 @@ export default function App() {
     <MotionConfig reducedMotion="user" transition={iosSpring}>
       <div className="app-shell">
         <div className="stack-viewport">
-          <ScreenSurface
-            {...surfaceProps}
-            tab={activeTab}
-            scrollTop={scrollPositions.current[activeTab]}
-          />
+          <AnimatePresence mode="sync" initial={false} custom={direction}>
+            <StackTransition key={activeTab} direction={direction}>
+              <InteractiveScreen
+                {...surfaceProps}
+                tab={activeTab}
+                scrollTop={scrollPositions.current[activeTab]}
+                previousTab={previousTab}
+                previousScrollTop={previousTab ? scrollPositions.current[previousTab] : 0}
+                onSwipeBack={swipeBack}
+              />
+            </StackTransition>
+          </AnimatePresence>
         </div>
 
         <TabBar active={activeTab} onSelect={selectTab} labels={labels} />
