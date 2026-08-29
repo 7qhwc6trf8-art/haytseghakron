@@ -117,7 +117,6 @@ a:focus-visible {
 
 .stack-page-layer {
   position: absolute;
-  z-index: 1;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -127,6 +126,22 @@ a:focus-visible {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   contain: layout paint style;
+  background: var(--system-bg);
+}
+
+/* A single compositor-only edge shadow gives the foreground page the same
+   depth cue as iOS NavigationStack without animating blur/filter. */
+.stack-page-layer::after {
+  content: "";
+  position: absolute;
+  z-index: 999;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+  background: rgba(255,255,255,.06);
+  box-shadow: -10px 0 24px rgba(0,0,0,.22);
 }
 
 .interactive-screen,
@@ -885,7 +900,7 @@ html[data-theme="light"] .social-icon.threads {
 
 .sheet-backdrop {
   position: absolute;
-  z-index: 90;
+  z-index: 300;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -894,9 +909,19 @@ html[data-theme="light"] .social-icon.threads {
   background: rgba(0, 0, 0, 0.34);
 }
 
+
+.app-shell.modal-open .tabbar-shell {
+  pointer-events: none;
+}
+
+.app-shell.modal-open .stack-viewport,
+.app-shell.modal-open .navigation-bar {
+  pointer-events: none;
+}
+
 .settings-sheet {
   position: absolute;
-  z-index: 100;
+  z-index: 310;
   left: max(0px, calc((100vw - 620px) / 2));
   right: max(0px, calc((100vw - 620px) / 2));
   bottom: 0;
