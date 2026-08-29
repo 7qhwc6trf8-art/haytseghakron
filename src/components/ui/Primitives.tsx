@@ -3,6 +3,7 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import { ChevronRight } from "lucide-react";
 
 export const iosSpring = { type: "spring", stiffness: 430, damping: 39, mass: 0.72 } as const;
+export const androidMotion = { duration: 0.22, ease: [0.2, 0, 0, 1] } as const;
 const pageEase = [0.22, 0.82, 0.22, 1] as const;
 
 export function AnimatedNumber({ value }: { value: number }) {

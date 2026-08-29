@@ -2,8 +2,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Languages, Moon, Settings2, Sun } from "lucide-react";
 import type { Appearance, Language } from "../../types";
 import type { Translator } from "../../data/content";
+import type { DevicePlatform } from "../../hooks/useDevicePlatform";
 
-export function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAppearance, t }: { open:boolean; onClose:()=>void; language:Language; setLanguage:(v:Language)=>void; appearance:Appearance; setAppearance:(v:Appearance)=>void; t:Translator }) {
+export function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAppearance, t, platform }: { open:boolean; onClose:()=>void; language:Language; setLanguage:(v:Language)=>void; appearance:Appearance; setAppearance:(v:Appearance)=>void; t:Translator; platform:DevicePlatform }) {
   const langs = [
     {key:"hy" as const,title:"Հայերեն",subtitle:"Armenian"},
     {key:"en" as const,title:"English",subtitle:"English"},
@@ -33,7 +34,7 @@ export function SettingsSheet({ open, onClose, language, setLanguage, appearance
       initial={{y:"100%"}}
       animate={{y:0}}
       exit={{y:"100%"}}
-      transition={{duration:.34,ease:[.32,.72,0,1]}}
+      transition={platform === "android" ? {duration:.28,ease:[.2,0,0,1]} : {duration:.34,ease:[.32,.72,0,1]}}
     >
       <div className="sheet-grabber"/>
       <div className="sheet-navigation">

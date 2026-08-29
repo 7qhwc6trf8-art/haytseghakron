@@ -6,18 +6,20 @@ import { copy, type Translator } from "./data/content";
 import { fetchDashboard, fetchFollowers, trackVisit } from "./services/api";
 import { useIOSViewport } from "./hooks/useIOSViewport";
 import { usePreferences } from "./hooks/usePreferences";
+import { useDevicePlatform } from "./hooks/useDevicePlatform";
 import { lightHaptic } from "./utils/haptics";
 import { ScreenSurface } from "./components/layout/ScreenSurface";
 import { NavigationStack, type NavigationDirection } from "./components/layout/NavigationStack";
 import { TabBar } from "./components/layout/TabBar";
 import { SettingsSheet } from "./components/settings/SettingsSheet";
-import { iosSpring } from "./components/ui/Primitives";
+import { androidMotion, iosSpring } from "./components/ui/Primitives";
 
 const tabOrder: TabKey[] = ["home", "social", "about"];
 
 export default function App() {
   useIOSViewport();
-  const { language, setLanguage, appearance, setAppearance } = usePreferences();
+  const platform = useDevicePlatform();
+  const { language, setLanguage, appearance, setAppearance, isDark } = usePreferences();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("home");
   const [route, setRoute] = useState<RouteKey>("home");
@@ -26,6 +28,14 @@ export default function App() {
   const [followers, setFollowers] = useState<FollowersData>({ instagram:1482, telegram:251, twitter:2, tiktok:459, threads:0 });
   const [dashboard, setDashboard] = useState<DashboardData|null>(null);
   const t: Translator = (key) => copy[language][key] as string;
+
+  useEffect(() => {
+    if (platform !== "android") return;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      "content",
+      isDark ? "#111318" : "#f8f9ff",
+    );
+  }, [platform, isDark]);
 
   useEffect(() => {
     trackVisit();
@@ -96,9 +106,9 @@ export default function App() {
   const labels = useMemo(()=>({home:t("home"),social:t("social"),about:t("about")}),[language]);
 
   return (
-    <MotionConfig reducedMotion="user" transition={iosSpring}>
-      <div className={`app-shell${settingsOpen ? " modal-open" : ""}`}>
-        <NavigationStack route={route} direction={direction}>
+    <MotionConfig reducedMotion="user" transition={platform === "android" ? androidMotion : iosSpring}>
+      <div className={`app-shell platform-${platform}${settingsOpen ? " modal-open" : ""}`}>
+        <NavigationStack route={route} direction={direction} platform={platform}>
           <ScreenSurface
             route={route}
             language={language}
@@ -124,6 +134,7 @@ export default function App() {
           appearance={appearance}
           setAppearance={setAppearance}
           t={t}
+          platform={platform}
         />
       </div>
     </MotionConfig>

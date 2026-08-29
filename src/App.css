@@ -1651,3 +1651,573 @@ html[data-theme="light"] .social-icon.threads {
   .faq-answer,
   .faq-item > button svg { transition: none !important; }
 }
+
+/* ========================================================================== */
+/* Android / Material 3 adaptive UI                                            */
+/* ========================================================================== */
+
+html[data-platform="android"] {
+  --ios-blue: #8ab4f8;
+  --ios-green: #81c995;
+  --ios-orange: #fdd663;
+  --ios-purple: #c58af9;
+  --ios-red: #f28b82;
+  font-family: Roboto, "Noto Sans Armenian", "Noto Sans", system-ui, sans-serif;
+}
+
+html[data-platform="android"][data-theme="dark"] {
+  --system-bg: #111318;
+  --secondary-system-bg: #1b1e24;
+  --tertiary-system-bg: #282b31;
+  --group-bg: #1d2026;
+  --label: #e2e2e9;
+  --secondary-label: #c4c6d0;
+  --tertiary-label: #8e9099;
+  --separator: rgba(196, 198, 208, 0.12);
+  --fill: rgba(196, 198, 208, 0.12);
+  --glass: #202329;
+  --glass-strong: #282b31;
+  --glass-border: transparent;
+  --shadow: rgba(0, 0, 0, 0.32);
+  --sheet: #202329;
+  --selected-pill: rgba(138, 180, 248, 0.18);
+}
+
+html[data-platform="android"][data-theme="light"] {
+  --ios-blue: #0b57d0;
+  --ios-green: #146c2e;
+  --ios-orange: #8a5100;
+  --ios-purple: #6f43c0;
+  --ios-red: #b3261e;
+  --system-bg: #f8f9ff;
+  --secondary-system-bg: #ffffff;
+  --tertiary-system-bg: #e8eaef;
+  --group-bg: #eff1f6;
+  --label: #1a1b20;
+  --secondary-label: #44474f;
+  --tertiary-label: #74777f;
+  --separator: rgba(68, 71, 79, 0.13);
+  --fill: rgba(68, 71, 79, 0.10);
+  --glass: #eef0f5;
+  --glass-strong: #e7e9ef;
+  --glass-border: transparent;
+  --shadow: rgba(0, 0, 0, 0.14);
+  --sheet: #f1f3f9;
+  --selected-pill: rgba(11, 87, 208, 0.14);
+}
+
+html[data-platform="android"] body {
+  font-family: Roboto, "Noto Sans Armenian", "Noto Sans", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+/* Android does not use iOS edge swipe navigation inside the web UI. */
+html[data-platform="android"] .swipe-back-edge,
+html[data-platform="android"] .gesture-dimmer {
+  display: none;
+}
+
+html[data-platform="android"] .stack-page-layer::after {
+  display: none;
+}
+
+html[data-platform="android"] .phone-canvas {
+  width: min(100%, 720px);
+  padding:
+    calc(env(safe-area-inset-top) + 76px)
+    16px
+    calc(env(safe-area-inset-bottom) + 104px);
+}
+
+/* Material top app bar */
+html[data-platform="android"] .navigation-bar {
+  height: calc(env(safe-area-inset-top) + 64px);
+  padding-top: env(safe-area-inset-top);
+  background: var(--system-bg);
+  border-bottom: 1px solid transparent;
+}
+
+html[data-platform="android"] .navigation-inner {
+  width: min(100%, 720px);
+  height: 64px;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+html[data-platform="android"] .navigation-brand {
+  gap: 12px;
+}
+
+html[data-platform="android"] .navigation-logo {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: #151518;
+}
+
+html[data-platform="android"] .navigation-logo img {
+  width: 29px;
+  height: 29px;
+}
+
+html[data-platform="android"] .navigation-brand strong {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+html[data-platform="android"] .navigation-actions {
+  gap: 4px;
+}
+
+html[data-platform="android"] .ios-icon-button {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--label);
+  transition: background-color 120ms ease, transform 100ms ease;
+}
+
+html[data-platform="android"] .ios-icon-button:active {
+  background: var(--fill);
+  transform: scale(.96);
+}
+
+html[data-platform="android"] .nav-back-button {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 10px 0 4px;
+  border-radius: 16px;
+  color: var(--label);
+  font-size: 14px;
+  font-weight: 500;
+  gap: 4px;
+}
+
+html[data-platform="android"] .nav-back-button:active {
+  background: var(--fill);
+}
+
+/* Material typography */
+html[data-platform="android"] .large-title-block {
+  padding: 12px 4px 24px;
+}
+
+html[data-platform="android"] .large-title-block h1 {
+  font-size: clamp(32px, 8vw, 40px);
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: -0.65px;
+}
+
+html[data-platform="android"] .large-title-block p {
+  margin-top: 8px;
+  color: var(--secondary-label);
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+html[data-platform="android"] .section-header {
+  min-height: 36px;
+  padding: 0 8px 8px;
+}
+
+html[data-platform="android"] .section-header h2 {
+  color: var(--secondary-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .1px;
+}
+
+html[data-platform="android"] .section-header p,
+html[data-platform="android"] .section-header > span {
+  font-size: 12px;
+}
+
+html[data-platform="android"] .content-section {
+  margin-top: 26px;
+}
+
+/* Material cards / containers */
+html[data-platform="android"] .profile-header,
+html[data-platform="android"] .ios-group,
+html[data-platform="android"] .community-card,
+html[data-platform="android"] .team-card,
+html[data-platform="android"] .history-copy,
+html[data-platform="android"] .partner-card {
+  border: 0;
+  background: var(--group-bg);
+  box-shadow: none;
+}
+
+html[data-platform="android"] .profile-header {
+  min-height: 122px;
+  padding: 18px;
+  border-radius: 24px;
+  gap: 16px;
+}
+
+html[data-platform="android"] .profile-avatar {
+  width: 80px;
+  height: 80px;
+  flex-basis: 80px;
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+html[data-platform="android"] .profile-copy h2 {
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -.25px;
+}
+
+html[data-platform="android"] .profile-copy p {
+  font-size: 13px;
+}
+
+html[data-platform="android"] .status-line {
+  font-size: 12px;
+  font-weight: 550;
+}
+
+html[data-platform="android"] .ios-group {
+  border-radius: 22px;
+}
+
+html[data-platform="android"] .overview-row {
+  min-height: 62px;
+  padding: 10px 16px;
+  gap: 14px;
+}
+
+html[data-platform="android"] .overview-row:not(:last-child)::after,
+html[data-platform="android"] .ios-row:not(:last-child)::after {
+  left: 62px;
+  height: 1px;
+  background: var(--separator);
+}
+
+html[data-platform="android"] .row-symbol {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+  border-radius: 12px;
+}
+
+html[data-platform="android"] .overview-label,
+html[data-platform="android"] .overview-value {
+  font-size: 15px;
+}
+
+html[data-platform="android"] .ios-row {
+  min-height: 68px;
+  padding: 9px 16px;
+  gap: 14px;
+  transition: background-color 120ms ease;
+}
+
+html[data-platform="android"] .ios-row:active,
+html[data-platform="android"] .client-menu-row:active {
+  background: var(--fill);
+}
+
+html[data-platform="android"] .social-icon {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  border-radius: 14px;
+}
+
+html[data-platform="android"] .row-copy strong {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+html[data-platform="android"] .row-copy small,
+html[data-platform="android"] .row-trailing small {
+  font-size: 12px;
+}
+
+html[data-platform="android"] .refresh-button,
+html[data-platform="android"] .primary-action {
+  min-height: 52px;
+  border-radius: 26px;
+  font-size: 14px;
+  font-weight: 650;
+  box-shadow: none;
+}
+
+html[data-platform="android"] .refresh-button:active,
+html[data-platform="android"] .primary-action:active {
+  filter: brightness(.94);
+}
+
+html[data-platform="android"] .community-card,
+html[data-platform="android"] .manifesto-card {
+  border-radius: 24px;
+}
+
+html[data-platform="android"] .community-meta span {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+}
+
+html[data-platform="android"] .about-symbol,
+html[data-platform="android"] .about-project-logo,
+html[data-platform="android"] .client-menu-icon,
+html[data-platform="android"] .detail-number,
+html[data-platform="android"] .contact-symbol,
+html[data-platform="android"] .language-symbol,
+html[data-platform="android"] .partner-logo {
+  border-radius: 14px;
+}
+
+html[data-platform="android"] .client-menu-icon {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+
+html[data-platform="android"] .detail-item {
+  grid-template-columns: 44px 1fr;
+  padding: 20px 18px;
+  gap: 14px;
+  border-bottom-color: var(--separator);
+}
+
+html[data-platform="android"] .detail-item h3 {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+html[data-platform="android"] .detail-item p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+html[data-platform="android"] .team-card,
+html[data-platform="android"] .partner-card {
+  border-radius: 24px;
+}
+
+html[data-platform="android"] .faq-item > button {
+  min-height: 64px;
+  padding: 14px 18px;
+}
+
+html[data-platform="android"] .faq-item > button span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+html[data-platform="android"] .faq-answer {
+  transition-timing-function: cubic-bezier(.2, 0, 0, 1);
+}
+
+/* Full-width Material 3 Navigation Bar. Never use the iOS floating glass bar
+   on Android. The system gesture inset stays below the app navigation items. */
+html[data-platform="android"] .tabbar-shell {
+  z-index: 500;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: calc(80px + env(safe-area-inset-bottom));
+  padding: 0 8px env(safe-area-inset-bottom);
+  align-items: stretch;
+  background: var(--secondary-system-bg);
+  border-top: 1px solid var(--separator);
+}
+
+html[data-platform="android"] .liquid-tabbar {
+  width: min(100%, 720px);
+  height: 80px;
+  padding: 6px 4px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  contain: layout paint;
+}
+
+html[data-platform="android"] .tab-item {
+  min-height: 66px;
+  border-radius: 20px;
+  overflow: visible;
+  color: var(--secondary-label);
+}
+
+html[data-platform="android"] .tab-selection {
+  top: 7px;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: 64px;
+  height: 32px;
+  border-radius: 16px;
+  transform: translateX(-50%);
+  background: var(--selected-pill);
+}
+
+html[data-platform="android"] .tab-content {
+  gap: 3px;
+}
+
+html[data-platform="android"] .tab-icon {
+  width: 64px;
+  height: 34px;
+}
+
+html[data-platform="android"] .tab-label {
+  font-size: 12px;
+  line-height: 1.15;
+  font-weight: 550;
+}
+
+html[data-platform="android"] .tab-item.selected {
+  color: var(--label);
+}
+
+html[data-platform="android"] .tab-item.selected .tab-icon {
+  color: var(--ios-blue);
+}
+
+html[data-platform="android"] .tab-item:active .tab-content {
+  transform: scale(.97);
+}
+
+/* Material modal bottom sheet */
+html[data-platform="android"] .sheet-backdrop {
+  background: rgba(0, 0, 0, .48);
+}
+
+html[data-platform="android"] .settings-sheet {
+  left: max(0px, calc((100vw - 720px) / 2));
+  right: max(0px, calc((100vw - 720px) / 2));
+  max-height: min(calc(100dvh - env(safe-area-inset-top) - 24px), 760px);
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--sheet);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, .22);
+}
+
+html[data-platform="android"] .sheet-grabber {
+  width: 32px;
+  height: 4px;
+  margin: 0 auto 8px;
+  border-radius: 2px;
+  background: var(--tertiary-label);
+}
+
+html[data-platform="android"] .sheet-navigation {
+  min-height: 56px;
+  justify-content: flex-start;
+}
+
+html[data-platform="android"] .sheet-navigation strong {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+html[data-platform="android"] .done-button {
+  right: 0;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
+  color: var(--ios-blue);
+  background: var(--selected-pill);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+html[data-platform="android"] .settings-section {
+  margin-top: 20px;
+}
+
+html[data-platform="android"] .settings-section h3 {
+  margin: 0 0 9px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: .2px;
+}
+
+html[data-platform="android"] .segmented-control {
+  padding: 4px;
+  border-radius: 24px;
+  gap: 4px;
+  background: var(--tertiary-system-bg);
+}
+
+html[data-platform="android"] .segmented-control button {
+  min-height: 42px;
+  border-radius: 21px;
+}
+
+html[data-platform="android"] .segmented-control button.selected {
+  color: var(--label);
+  background: var(--selected-pill);
+}
+
+html[data-platform="android"] .segment-label {
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+html[data-platform="android"] .settings-list {
+  border-radius: 24px;
+}
+
+html[data-platform="android"] .settings-row {
+  min-height: 68px;
+  padding: 9px 16px;
+}
+
+html[data-platform="android"] .language-symbol {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+
+html[data-platform="android"] .language-check {
+  width: 24px;
+  height: 24px;
+  background: var(--ios-blue);
+}
+
+/* Android presses use state layers rather than iOS scale-only feedback. */
+@media (hover: hover) and (pointer: fine) {
+  html[data-platform="android"] .ios-row:hover,
+  html[data-platform="android"] .ios-icon-button:hover,
+  html[data-platform="android"] .tab-item:hover {
+    background: var(--fill);
+  }
+}
+
+@media (max-width: 390px) {
+  html[data-platform="android"] .phone-canvas,
+  html[data-platform="android"] .navigation-inner {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  html[data-platform="android"] .large-title-block h1 {
+    font-size: 32px;
+  }
+
+  html[data-platform="android"] .tabbar-shell {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
