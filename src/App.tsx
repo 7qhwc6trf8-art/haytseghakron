@@ -30,7 +30,7 @@ import {
 import {
   FaFacebookF,
   FaInstagram,
-  FaTelegram,
+  FaTelegramPlane,
   FaTiktok,
   FaXTwitter,
 } from "react-icons/fa6";
@@ -163,7 +163,7 @@ const copy = {
 
 const socials = [
   { key: "instagram" as const, name: "Instagram", handle: "@haytseghakron", url: "https://instagram.com/haytseghakron", icon: FaInstagram, tone: "instagram" },
-  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegram, tone: "telegram" },
+  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegramPlane, tone: "telegram" },
   { key: "twitter" as const, name: "X", handle: "@haytseghakron", url: "https://x.com/haytseghakron", icon: FaXTwitter, tone: "x" },
   { key: "threads" as const, name: "Threads", handle: "@haytseghakron", url: "https://threads.net/@haytseghakron", icon: TbBrandThreads, tone: "threads" },
   { key: "facebook" as const, name: "Facebook", handle: "HayTseghakron", url: "https://www.facebook.com/share/185yWbehcY/", icon: FaFacebookF, tone: "facebook" },
@@ -536,23 +536,29 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
 
 const pageVariants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? "100%" : direction < 0 ? "-28%" : 0,
-    opacity: direction === 0 ? 0 : 1,
-    scale: direction === 0 ? 0.992 : 1,
+    x: direction > 0 ? "100%" : direction < 0 ? "-30%" : 0,
+    opacity: direction < 0 ? 0.94 : 1,
+    scale: direction < 0 ? 0.985 : 1,
+    zIndex: direction > 0 ? 2 : 0,
   }),
-  center: { x: 0, opacity: 1, scale: 1 },
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+    zIndex: 1,
+  },
   exit: (direction: number) => ({
-    x: direction > 0 ? "-28%" : direction < 0 ? "100%" : 0,
-    opacity: direction === 0 ? 0 : 1,
-    scale: direction === 0 ? 0.992 : 1,
+    x: direction > 0 ? "-30%" : direction < 0 ? "100%" : 0,
+    opacity: direction > 0 ? 0.94 : 1,
+    scale: direction > 0 ? 0.985 : 1,
+    zIndex: direction < 0 ? 2 : 0,
   }),
 };
 
-function PageTransition({ id, direction, children }: React.PropsWithChildren<{ id: string; direction: number }>) {
+function PageTransition({ direction, children }: React.PropsWithChildren<{ direction: number }>) {
   const reduce = useReducedMotion();
   return (
     <motion.div
-      key={id}
       className="ios-page"
       custom={direction}
       variants={reduce ? undefined : pageVariants}
@@ -667,51 +673,55 @@ export default function App() {
 
         <div className="app-scroll" ref={scrollRef}>
           <main className="phone-canvas">
-            <AnimatePresence mode="popLayout" initial={false} custom={direction}>
-              {activeTab === "home" && (
-                <PageTransition id="home" direction={direction}>
-                  <LargeTitle title={t("home")} subtitle={t("subtitle")} />
-                  <ProfileHeader title={t("title")} subtitle={t("subtitle")} live={t("live")} />
+            <div className="page-stage">
+              <AnimatePresence mode="sync" initial={false} custom={direction}>
+                <PageTransition key={activeTab} direction={direction}>
+                  {activeTab === "home" && (
+                    <>
+                      <LargeTitle title={t("home")} subtitle={t("subtitle")} />
+                      <ProfileHeader title={t("title")} subtitle={t("subtitle")} live={t("live")} />
 
-                  <section className="content-section">
-                    <SectionHeader title={t("overview")} />
-                    <Overview followers={followers} dashboard={dashboard} labels={[t("followers"), t("visits"), t("unique")]} />
-                  </section>
+                      <section className="content-section">
+                        <SectionHeader title={t("overview")} />
+                        <Overview followers={followers} dashboard={dashboard} labels={[t("followers"), t("visits"), t("unique")]} />
+                      </section>
 
-                  <section className="content-section">
-                    <SectionHeader title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
-                    <SocialList followers={followers} />
-                    <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
-                  </section>
+                      <section className="content-section">
+                        <SectionHeader title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
+                        <SocialList followers={followers} />
+                        <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
+                      </section>
 
-                  <section className="content-section">
-                    <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
-                  </section>
+                      <section className="content-section">
+                        <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
+                      </section>
+                    </>
+                  )}
+
+                  {activeTab === "social" && (
+                    <>
+                      <LargeTitle title={t("social")} subtitle={t("connectHint")} />
+                      <section className="content-section first-section">
+                        <SocialList followers={followers} />
+                        <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
+                      </section>
+                    </>
+                  )}
+
+                  {activeTab === "about" && (
+                    <>
+                      <LargeTitle title={t("about")} subtitle={t("title")} />
+                      <section className="content-section first-section">
+                        <AboutPanel title={t("aboutTitle")} body={t("aboutBody")} />
+                      </section>
+                      <section className="content-section">
+                        <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
+                      </section>
+                    </>
+                  )}
                 </PageTransition>
-              )}
-
-              {activeTab === "social" && (
-                <PageTransition id="social" direction={direction}>
-                  <LargeTitle title={t("social")} subtitle={t("connectHint")} />
-                  <section className="content-section first-section">
-                    <SocialList followers={followers} />
-                    <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
-                  </section>
-                </PageTransition>
-              )}
-
-              {activeTab === "about" && (
-                <PageTransition id="about" direction={direction}>
-                  <LargeTitle title={t("about")} subtitle={t("title")} />
-                  <section className="content-section first-section">
-                    <AboutPanel title={t("aboutTitle")} body={t("aboutBody")} />
-                  </section>
-                  <section className="content-section">
-                    <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
-                  </section>
-                </PageTransition>
-              )}
-            </AnimatePresence>
+              </AnimatePresence>
+            </div>
 
             <footer className="footer">
               <span>© {new Date().getFullYear()} Hay Tseghakron</span>
