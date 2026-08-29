@@ -55,6 +55,7 @@ body,
 #root {
   width: 100%;
   height: 100%;
+  min-height: 100dvh;
   min-width: 320px;
   margin: 0;
   overflow: hidden;
@@ -94,14 +95,24 @@ a:focus-visible {
 
 .app-shell {
   position: fixed;
-  inset: 0 auto auto 0;
+  inset: 0;
   width: 100%;
-  height: var(--app-height, 100dvh);
-  min-height: 0;
+  height: 100dvh;
+  min-height: 100%;
   overflow: hidden;
   background: var(--system-bg);
   color: var(--label);
   isolation: isolate;
+}
+
+/* iOS/WebView fix: never size the root shell from visualViewport.height.
+   Some iPhone webviews report a stale/smaller visual viewport and lift the
+   bottom chrome hundreds of pixels above the physical bottom edge. */
+@supports (-webkit-touch-callout: none) {
+  .app-shell {
+    height: 100%;
+    min-height: -webkit-fill-available;
+  }
 }
 
 
@@ -815,8 +826,8 @@ html[data-theme="light"] .social-icon.threads {
 
 /* iOS 26 Liquid Glass tab bar, kept compact and GPU-cheap. */
 .tabbar-shell {
-  position: absolute;
-  z-index: 200;
+  position: fixed;
+  z-index: 500;
   left: 0;
   right: 0;
   bottom: 0;
@@ -899,8 +910,8 @@ html[data-theme="light"] .social-icon.threads {
 }
 
 .sheet-backdrop {
-  position: absolute;
-  z-index: 300;
+  position: fixed;
+  z-index: 800;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -912,6 +923,16 @@ html[data-theme="light"] .social-icon.threads {
 
 .app-shell.modal-open .tabbar-shell {
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tabbar-shell {
+  transition: opacity 140ms ease-out, visibility 140ms step-end;
+}
+
+.app-shell:not(.modal-open) .tabbar-shell {
+  transition: opacity 160ms ease-out;
 }
 
 .app-shell.modal-open .stack-viewport,
@@ -920,12 +941,12 @@ html[data-theme="light"] .social-icon.threads {
 }
 
 .settings-sheet {
-  position: absolute;
-  z-index: 310;
+  position: fixed;
+  z-index: 810;
   left: max(0px, calc((100vw - 620px) / 2));
   right: max(0px, calc((100vw - 620px) / 2));
   bottom: 0;
-  max-height: min(calc(var(--app-height) - env(safe-area-inset-top) - 14px), 720px);
+  max-height: min(calc(100dvh - env(safe-area-inset-top) - 14px), 720px);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 7px 16px calc(24px + env(safe-area-inset-bottom));
@@ -1126,6 +1147,7 @@ html[data-theme="light"] .social-icon.threads {
 
 @media (display-mode: standalone) {
   .app-shell {
+    inset: 0;
     height: 100dvh;
   }
 }
