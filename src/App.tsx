@@ -30,7 +30,7 @@ import {
 import {
   FaFacebookF,
   FaInstagram,
-  FaTelegram,
+  FaTelegramPlane,
   FaTiktok,
   FaXTwitter,
 } from "react-icons/fa6";
@@ -163,7 +163,7 @@ const copy = {
 
 const socials = [
   { key: "instagram" as const, name: "Instagram", handle: "@haytseghakron", url: "https://instagram.com/haytseghakron", icon: FaInstagram, tone: "instagram" },
-  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegram, tone: "telegram" },
+  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegramPlane, tone: "telegram" },
   { key: "twitter" as const, name: "X", handle: "@haytseghakron", url: "https://x.com/haytseghakron", icon: FaXTwitter, tone: "x" },
   { key: "threads" as const, name: "Threads", handle: "@haytseghakron", url: "https://threads.net/@haytseghakron", icon: TbBrandThreads, tone: "threads" },
   { key: "facebook" as const, name: "Facebook", handle: "HayTseghakron", url: "https://www.facebook.com/share/185yWbehcY/", icon: FaFacebookF, tone: "facebook" },
