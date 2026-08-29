@@ -31,7 +31,7 @@ import {
 import {
   FaFacebookF,
   FaInstagram,
-  FaTelegram,
+  FaTelegramPlane,
   FaTiktok,
   FaXTwitter,
 } from "react-icons/fa6";
@@ -164,7 +164,7 @@ const copy = {
 
 const socials = [
   { key: "instagram" as const, name: "Instagram", handle: "@haytseghakron", url: "https://instagram.com/haytseghakron", icon: FaInstagram, tone: "instagram" },
-  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegram, tone: "telegram" },
+  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegramPlane, tone: "telegram" },
   { key: "twitter" as const, name: "X", handle: "@haytseghakron", url: "https://x.com/haytseghakron", icon: FaXTwitter, tone: "x" },
   { key: "threads" as const, name: "Threads", handle: "@haytseghakron", url: "https://threads.net/@haytseghakron", icon: TbBrandThreads, tone: "threads" },
   { key: "facebook" as const, name: "Facebook", handle: "HayTseghakron", url: "https://www.facebook.com/share/185yWbehcY/", icon: FaFacebookF, tone: "facebook" },
@@ -175,6 +175,12 @@ const tabOrder: TabKey[] = ["home", "social", "about"];
 const iosSpring = { type: "spring", stiffness: 430, damping: 39, mass: 0.72 } as const;
 const sheetSpring = { type: "spring", stiffness: 390, damping: 40, mass: 0.9 } as const;
 const pageEase = [0.22, 0.82, 0.22, 1] as const;
+
+function lightHaptic() {
+  // navigator.vibrate is ignored on unsupported devices (including current iOS Safari),
+  // but gives a subtle tap on browsers/devices that support it.
+  try { navigator.vibrate?.(8); } catch { /* no-op */ }
+}
 
 function trackVisit() {
   try {
@@ -522,22 +528,17 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
 }
 
 const navEase = [0.32, 0.72, 0, 1] as const;
-const navTransition = { duration: 0.32, ease: navEase } as const;
+// Keep navigation on the compositor: transform only, no full-screen opacity/filter animation.
+const navTransition = { duration: 0.285, ease: navEase } as const;
 
 const stackVariants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? "100%" : direction < 0 ? "-27%" : 0,
-    opacity: direction < 0 ? 0.9 : 1,
+    x: direction > 0 ? "100%" : direction < 0 ? "-24%" : 0,
     zIndex: direction > 0 ? 3 : direction < 0 ? 1 : 2,
   }),
-  center: {
-    x: 0,
-    opacity: 1,
-    zIndex: 2,
-  },
+  center: { x: 0, zIndex: 2 },
   exit: (direction: number) => ({
-    x: direction > 0 ? "-27%" : direction < 0 ? "100%" : 0,
-    opacity: direction > 0 ? 0.9 : 1,
+    x: direction > 0 ? "-24%" : direction < 0 ? "100%" : 0,
     zIndex: direction < 0 ? 3 : 1,
   }),
 };
@@ -554,7 +555,6 @@ type ScreenSurfaceProps = {
   t: Translator;
   share: () => void;
   onSettings: () => void;
-  onSelect: (tab: TabKey) => void;
   scrollTop?: number;
   registerScroll?: (tab: TabKey, node: HTMLDivElement | null) => void;
   onScroll?: (tab: TabKey, top: number) => void;
@@ -570,7 +570,6 @@ function ScreenSurface({
   t,
   share,
   onSettings,
-  onSelect,
   scrollTop = 0,
   registerScroll,
   onScroll,
@@ -643,7 +642,6 @@ function ScreenSurface({
         </main>
       </div>
 
-      <TabBar active={tab} onSelect={onSelect} labels={labels} />
     </div>
   );
 }
@@ -669,17 +667,16 @@ function InteractiveScreen({ previousTab, previousScrollTop, onSwipeBack, ...sur
 
   const progress = useTransform(foregroundX, [0, viewportWidth], [0, 1]);
   const underlayX = useTransform(progress, (value) => -viewportWidth * 0.27 * (1 - Math.max(0, Math.min(1, value))));
-  const underlayOpacity = useTransform(progress, [0, 1], [0.9, 1]);
-  const dimOpacity = useTransform(progress, [0, 1], [0.1, 0]);
+  const dimOpacity = useTransform(progress, [0, 1], [0.12, 0]);
 
   const cancelGesture = () => {
-    animate(foregroundX, 0, { type: "spring", stiffness: 520, damping: 46, mass: 0.72 }).then(() => {
+    animate(foregroundX, 0, { type: "spring", stiffness: 600, damping: 52, mass: 0.68 }).then(() => {
       setGestureActive(false);
     });
   };
 
   const finishGesture = (target: TabKey) => {
-    animate(foregroundX, viewportWidth, { duration: 0.18, ease: navEase }).then(() => {
+    animate(foregroundX, viewportWidth, { duration: 0.16, ease: navEase }).then(() => {
       onSwipeBack(target);
     });
   };
@@ -689,7 +686,7 @@ function InteractiveScreen({ previousTab, previousScrollTop, onSwipeBack, ...sur
       {previousTab && (
         <motion.div
           className={`gesture-underlay${gestureActive ? " is-visible" : ""}`}
-          style={{ x: underlayX, opacity: underlayOpacity }}
+          style={{ x: underlayX }}
           aria-hidden="true"
         >
           <ScreenSurface
@@ -838,11 +835,13 @@ export default function App() {
 
   const selectTab = (next: TabKey) => {
     if (next === activeTab) {
+      lightHaptic();
       scrollRefs.current[activeTab]?.scrollTo({ top: 0, behavior: "smooth" });
       scrollPositions.current[activeTab] = 0;
       return;
     }
 
+    lightHaptic();
     const currentIndex = tabOrder.indexOf(activeTab);
     const nextIndex = tabOrder.indexOf(next);
     setDirection(nextIndex > currentIndex ? 1 : -1);
@@ -857,6 +856,7 @@ export default function App() {
   };
 
   const swipeBack = (target: TabKey) => {
+    lightHaptic();
     setDirection(0);
     setNavHistory((history) => (history.length > 1 ? history.slice(0, -1) : history));
     setActiveTab(target);
@@ -882,7 +882,6 @@ export default function App() {
     t,
     share,
     onSettings: () => setSettingsOpen(true),
-    onSelect: selectTab,
     scrollTop: scrollPositions.current[activeTab],
     registerScroll,
     onScroll: rememberScroll,
@@ -905,6 +904,8 @@ export default function App() {
             </StackTransition>
           </AnimatePresence>
         </div>
+
+        <TabBar active={activeTab} onSelect={selectTab} labels={labels} />
 
         <SettingsSheet
           open={settingsOpen}
