@@ -2221,3 +2221,723 @@ html[data-platform="android"] .language-check {
     padding-right: 4px;
   }
 }
+
+/* ========================================================================== */
+/* Desktop adaptive shells: macOS / Windows 11 / Linux GNOME                 */
+/* ========================================================================== */
+
+html[data-platform="macos"],
+html[data-platform="windows"],
+html[data-platform="gnome"] {
+  --desktop-sidebar: 228px;
+  --desktop-content: 1180px;
+}
+
+html[data-platform="macos"] body,
+html[data-platform="windows"] body,
+html[data-platform="gnome"] body {
+  touch-action: auto;
+}
+
+html[data-platform="macos"] .stack-viewport,
+html[data-platform="windows"] .stack-viewport,
+html[data-platform="gnome"] .stack-viewport {
+  left: var(--desktop-sidebar);
+  border-left: 1px solid var(--separator);
+}
+
+html[data-platform="macos"] .stack-page-layer::after,
+html[data-platform="windows"] .stack-page-layer::after,
+html[data-platform="gnome"] .stack-page-layer::after,
+html[data-platform="macos"] .swipe-back-edge,
+html[data-platform="windows"] .swipe-back-edge,
+html[data-platform="gnome"] .swipe-back-edge,
+html[data-platform="macos"] .gesture-dimmer,
+html[data-platform="windows"] .gesture-dimmer,
+html[data-platform="gnome"] .gesture-dimmer {
+  display: none;
+}
+
+html[data-platform="macos"] .phone-canvas,
+html[data-platform="windows"] .phone-canvas,
+html[data-platform="gnome"] .phone-canvas {
+  width: min(100%, var(--desktop-content));
+  padding: 96px 34px 48px;
+}
+
+html[data-platform="macos"] .navigation-bar,
+html[data-platform="windows"] .navigation-bar,
+html[data-platform="gnome"] .navigation-bar {
+  position: absolute;
+  height: 68px;
+  padding-top: 0;
+  border-bottom: 1px solid var(--separator);
+  background: var(--system-bg);
+}
+
+html[data-platform="macos"] .navigation-inner,
+html[data-platform="windows"] .navigation-inner,
+html[data-platform="gnome"] .navigation-inner {
+  width: min(100%, var(--desktop-content));
+  height: 68px;
+  padding: 0 34px;
+}
+
+html[data-platform="macos"] .navigation-logo,
+html[data-platform="windows"] .navigation-logo,
+html[data-platform="gnome"] .navigation-logo {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+}
+
+html[data-platform="macos"] .navigation-logo img,
+html[data-platform="windows"] .navigation-logo img,
+html[data-platform="gnome"] .navigation-logo img {
+  width: 25px;
+  height: 25px;
+}
+
+html[data-platform="macos"] .navigation-brand strong,
+html[data-platform="windows"] .navigation-brand strong,
+html[data-platform="gnome"] .navigation-brand strong {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+/* Desktop navigation becomes a persistent left sidebar instead of a mobile
+   bottom tab bar. The same semantic tab buttons remain keyboard accessible. */
+html[data-platform="macos"] .tabbar-shell,
+html[data-platform="windows"] .tabbar-shell,
+html[data-platform="gnome"] .tabbar-shell {
+  z-index: 500;
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: 0;
+  width: var(--desktop-sidebar);
+  min-height: 100vh;
+  padding: 76px 10px 18px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: var(--secondary-system-bg);
+  border-right: 0;
+  pointer-events: auto;
+}
+
+html[data-platform="macos"] .liquid-tabbar,
+html[data-platform="windows"] .liquid-tabbar,
+html[data-platform="gnome"] .liquid-tabbar {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 44px;
+  gap: 4px;
+  background: transparent;
+  box-shadow: none;
+  contain: layout style;
+}
+
+html[data-platform="macos"] .tab-item,
+html[data-platform="windows"] .tab-item,
+html[data-platform="gnome"] .tab-item {
+  min-height: 44px;
+  padding: 0 12px;
+  place-items: stretch;
+  overflow: visible;
+}
+
+html[data-platform="macos"] .tab-content,
+html[data-platform="windows"] .tab-content,
+html[data-platform="gnome"] .tab-content {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 11px;
+  width: 100%;
+}
+
+html[data-platform="macos"] .tab-icon,
+html[data-platform="windows"] .tab-icon,
+html[data-platform="gnome"] .tab-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+html[data-platform="macos"] .tab-label,
+html[data-platform="windows"] .tab-label,
+html[data-platform="gnome"] .tab-label {
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 570;
+}
+
+html[data-platform="macos"] .app-shell.modal-open .tabbar-shell,
+html[data-platform="windows"] .app-shell.modal-open .tabbar-shell,
+html[data-platform="gnome"] .app-shell.modal-open .tabbar-shell {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+}
+
+/* Desktop settings is a centered preferences dialog rather than a phone
+   bottom sheet. CSS translate is independent from Framer's transform. */
+html[data-platform="macos"] .settings-sheet,
+html[data-platform="windows"] .settings-sheet,
+html[data-platform="gnome"] .settings-sheet {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  translate: -50% -50%;
+  width: min(560px, calc(100vw - 56px));
+  max-height: min(720px, calc(100vh - 64px));
+  padding: 18px 20px 22px;
+  border-bottom: 1px solid var(--separator);
+  overflow: auto;
+  touch-action: auto;
+}
+
+html[data-platform="macos"] .sheet-grabber,
+html[data-platform="windows"] .sheet-grabber,
+html[data-platform="gnome"] .sheet-grabber {
+  display: none;
+}
+
+html[data-platform="macos"] .sheet-navigation,
+html[data-platform="windows"] .sheet-navigation,
+html[data-platform="gnome"] .sheet-navigation {
+  min-height: 48px;
+  justify-content: flex-start;
+  padding: 0 2px;
+}
+
+html[data-platform="macos"] .sheet-navigation strong,
+html[data-platform="windows"] .sheet-navigation strong,
+html[data-platform="gnome"] .sheet-navigation strong {
+  font-size: 18px;
+}
+
+html[data-platform="macos"] .done-button,
+html[data-platform="windows"] .done-button,
+html[data-platform="gnome"] .done-button {
+  right: 0;
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+html[data-platform="macos"] .settings-section,
+html[data-platform="windows"] .settings-section,
+html[data-platform="gnome"] .settings-section {
+  margin-top: 18px;
+}
+
+html[data-platform="macos"] .large-title-block h1,
+html[data-platform="windows"] .large-title-block h1,
+html[data-platform="gnome"] .large-title-block h1 {
+  font-size: clamp(34px, 4vw, 46px);
+}
+
+html[data-platform="macos"] .route-home,
+html[data-platform="windows"] .route-home,
+html[data-platform="gnome"] .route-home {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 20px;
+  align-content: start;
+}
+
+html[data-platform="macos"] .route-home > .large-title-block,
+html[data-platform="windows"] .route-home > .large-title-block,
+html[data-platform="gnome"] .route-home > .large-title-block,
+html[data-platform="macos"] .route-home > .footer,
+html[data-platform="windows"] .route-home > .footer,
+html[data-platform="gnome"] .route-home > .footer {
+  grid-column: 1 / -1;
+}
+
+html[data-platform="macos"] .route-home > .profile-header,
+html[data-platform="windows"] .route-home > .profile-header,
+html[data-platform="gnome"] .route-home > .profile-header {
+  grid-column: 1 / span 5;
+  margin: 0;
+}
+
+html[data-platform="macos"] .route-home > .content-section,
+html[data-platform="windows"] .route-home > .content-section,
+html[data-platform="gnome"] .route-home > .content-section {
+  margin-top: 0;
+}
+
+html[data-platform="macos"] .route-home > section:nth-of-type(2),
+html[data-platform="windows"] .route-home > section:nth-of-type(2),
+html[data-platform="gnome"] .route-home > section:nth-of-type(2) {
+  grid-column: 6 / -1;
+}
+
+html[data-platform="macos"] .route-home > section:nth-of-type(3),
+html[data-platform="windows"] .route-home > section:nth-of-type(3),
+html[data-platform="gnome"] .route-home > section:nth-of-type(3) {
+  grid-column: 1 / span 7;
+  margin-top: 22px;
+}
+
+html[data-platform="macos"] .route-home > section:nth-of-type(4),
+html[data-platform="windows"] .route-home > section:nth-of-type(4),
+html[data-platform="gnome"] .route-home > section:nth-of-type(4) {
+  grid-column: 8 / -1;
+  margin-top: 22px;
+}
+
+html[data-platform="macos"] .route-about,
+html[data-platform="windows"] .route-about,
+html[data-platform="gnome"] .route-about {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-content: start;
+}
+
+html[data-platform="macos"] .route-about > .large-title-block,
+html[data-platform="windows"] .route-about > .large-title-block,
+html[data-platform="gnome"] .route-about > .large-title-block,
+html[data-platform="macos"] .route-about > .footer,
+html[data-platform="windows"] .route-about > .footer,
+html[data-platform="gnome"] .route-about > .footer {
+  grid-column: 1 / -1;
+}
+
+html[data-platform="macos"] .route-about > .content-section,
+html[data-platform="windows"] .route-about > .content-section,
+html[data-platform="gnome"] .route-about > .content-section {
+  margin-top: 0;
+}
+
+html[data-platform="macos"] .route-social,
+html[data-platform="windows"] .route-social,
+html[data-platform="gnome"] .route-social {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* -------------------------------------------------------------------------- */
+/* macOS                                                                      */
+/* -------------------------------------------------------------------------- */
+html[data-platform="macos"] {
+  --desktop-sidebar: 224px;
+  --ios-blue: #0a84ff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+}
+
+html[data-platform="macos"][data-theme="dark"] {
+  --system-bg: #1c1c1e;
+  --secondary-system-bg: #262629;
+  --tertiary-system-bg: #343438;
+  --group-bg: #2b2b2f;
+  --label: #f5f5f7;
+  --secondary-label: rgba(235,235,245,.68);
+  --tertiary-label: rgba(235,235,245,.38);
+  --separator: rgba(255,255,255,.10);
+  --fill: rgba(255,255,255,.08);
+  --sheet: #2b2b2f;
+  --selected-pill: rgba(10,132,255,.20);
+}
+
+html[data-platform="macos"][data-theme="light"] {
+  --system-bg: #f5f5f7;
+  --secondary-system-bg: rgba(238,238,240,.96);
+  --tertiary-system-bg: #e4e4e7;
+  --group-bg: #ffffff;
+  --label: #1d1d1f;
+  --secondary-label: rgba(60,60,67,.68);
+  --tertiary-label: rgba(60,60,67,.38);
+  --separator: rgba(0,0,0,.10);
+  --fill: rgba(0,0,0,.055);
+  --sheet: #f7f7f9;
+  --selected-pill: rgba(10,132,255,.14);
+}
+
+html[data-platform="macos"] .tabbar-shell {
+  background: color-mix(in srgb, var(--secondary-system-bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
+}
+
+html[data-platform="macos"] .tabbar-shell::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 20px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: 20px 0 #febc2e, 40px 0 #28c840;
+}
+
+html[data-platform="macos"] .navigation-bar {
+  background: color-mix(in srgb, var(--system-bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  backdrop-filter: blur(24px) saturate(135%);
+}
+
+html[data-platform="macos"] .tab-item {
+  border-radius: 8px;
+}
+
+html[data-platform="macos"] .tab-selection {
+  inset: 0;
+  border-radius: 8px;
+  background: var(--selected-pill);
+}
+
+html[data-platform="macos"] .tab-item.selected {
+  color: var(--label);
+}
+
+html[data-platform="macos"] .ios-icon-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--group-bg);
+  box-shadow: 0 1px 2px rgba(0,0,0,.12);
+}
+
+html[data-platform="macos"] .ios-icon-button:hover,
+html[data-platform="macos"] .ios-row:hover,
+html[data-platform="macos"] .tab-item:hover {
+  background-color: var(--fill);
+}
+
+html[data-platform="macos"] .profile-header,
+html[data-platform="macos"] .ios-group,
+html[data-platform="macos"] .community-card,
+html[data-platform="macos"] .team-card,
+html[data-platform="macos"] .history-copy,
+html[data-platform="macos"] .partner-card {
+  border-radius: 14px;
+  border: 1px solid var(--separator);
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+html[data-platform="macos"] .settings-sheet {
+  border-radius: 16px;
+  background: var(--sheet);
+  box-shadow: 0 24px 70px rgba(0,0,0,.32), 0 0 0 1px var(--separator);
+}
+
+html[data-platform="macos"] .sheet-backdrop {
+  background: rgba(0,0,0,.22);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+html[data-platform="macos"] .done-button {
+  border-radius: 7px;
+  color: #fff;
+  background: var(--ios-blue);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Windows 11 / Fluent                                                        */
+/* -------------------------------------------------------------------------- */
+html[data-platform="windows"] {
+  --desktop-sidebar: 244px;
+  --ios-blue: #60cdff;
+  font-family: "Segoe UI Variable", "Segoe UI", "Noto Sans Armenian", sans-serif;
+}
+
+html[data-platform="windows"][data-theme="dark"] {
+  --system-bg: #202020;
+  --secondary-system-bg: #272727;
+  --tertiary-system-bg: #303030;
+  --group-bg: #2b2b2b;
+  --label: #ffffff;
+  --secondary-label: rgba(255,255,255,.72);
+  --tertiary-label: rgba(255,255,255,.46);
+  --separator: rgba(255,255,255,.0837);
+  --fill: rgba(255,255,255,.0605);
+  --sheet: #2b2b2b;
+  --selected-pill: rgba(96,205,255,.12);
+}
+
+html[data-platform="windows"][data-theme="light"] {
+  --ios-blue: #0067c0;
+  --system-bg: #f3f3f3;
+  --secondary-system-bg: #f7f7f7;
+  --tertiary-system-bg: #eaeaea;
+  --group-bg: rgba(255,255,255,.76);
+  --label: #1a1a1a;
+  --secondary-label: rgba(0,0,0,.68);
+  --tertiary-label: rgba(0,0,0,.44);
+  --separator: rgba(0,0,0,.0803);
+  --fill: rgba(0,0,0,.0373);
+  --sheet: #f8f8f8;
+  --selected-pill: rgba(0,103,192,.10);
+}
+
+html[data-platform="windows"] .app-shell {
+  background:
+    radial-gradient(circle at 72% -10%, color-mix(in srgb, var(--ios-blue) 8%, transparent), transparent 34%),
+    var(--system-bg);
+}
+
+html[data-platform="windows"] .tabbar-shell {
+  background: color-mix(in srgb, var(--secondary-system-bg) 96%, transparent);
+  border-right: 1px solid var(--separator);
+}
+
+html[data-platform="windows"] .navigation-bar {
+  background: color-mix(in srgb, var(--system-bg) 92%, transparent);
+}
+
+html[data-platform="windows"] .tab-item {
+  min-height: 40px;
+  border-radius: 4px;
+  padding: 0 11px;
+}
+
+html[data-platform="windows"] .tab-selection {
+  inset: 0;
+  border-radius: 4px;
+  background: var(--fill);
+}
+
+html[data-platform="windows"] .tab-selection::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--ios-blue);
+}
+
+html[data-platform="windows"] .tab-item.selected {
+  color: var(--label);
+}
+
+html[data-platform="windows"] .ios-icon-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--separator);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--group-bg) 82%, transparent);
+  box-shadow: none;
+}
+
+html[data-platform="windows"] .ios-icon-button:hover,
+html[data-platform="windows"] .ios-row:hover,
+html[data-platform="windows"] .tab-item:hover {
+  background-color: color-mix(in srgb, var(--fill) 180%, transparent);
+}
+
+html[data-platform="windows"] .profile-header,
+html[data-platform="windows"] .ios-group,
+html[data-platform="windows"] .community-card,
+html[data-platform="windows"] .team-card,
+html[data-platform="windows"] .history-copy,
+html[data-platform="windows"] .partner-card {
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  box-shadow: 0 2px 4px rgba(0,0,0,.06);
+  background: var(--group-bg);
+}
+
+html[data-platform="windows"] .refresh-button,
+html[data-platform="windows"] .primary-action,
+html[data-platform="windows"] .done-button {
+  border-radius: 5px;
+}
+
+html[data-platform="windows"] .settings-sheet {
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--sheet);
+  box-shadow: 0 24px 70px rgba(0,0,0,.36);
+}
+
+html[data-platform="windows"] .sheet-backdrop {
+  background: rgba(0,0,0,.28);
+}
+
+html[data-platform="windows"] .segmented-control,
+html[data-platform="windows"] .segmented-control button,
+html[data-platform="windows"] .settings-list {
+  border-radius: 6px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Linux / GNOME / libadwaita                                                 */
+/* -------------------------------------------------------------------------- */
+html[data-platform="gnome"] {
+  --desktop-sidebar: 232px;
+  --ios-blue: #3584e4;
+  font-family: "Adwaita Sans", Cantarell, "Noto Sans Armenian", "Noto Sans", sans-serif;
+}
+
+html[data-platform="gnome"][data-theme="dark"] {
+  --system-bg: #1e1e1e;
+  --secondary-system-bg: #242424;
+  --tertiary-system-bg: #303030;
+  --group-bg: #2a2a2a;
+  --label: #ffffff;
+  --secondary-label: rgba(255,255,255,.72);
+  --tertiary-label: rgba(255,255,255,.44);
+  --separator: rgba(255,255,255,.10);
+  --fill: rgba(255,255,255,.08);
+  --sheet: #2a2a2a;
+  --selected-pill: rgba(53,132,228,.24);
+}
+
+html[data-platform="gnome"][data-theme="light"] {
+  --system-bg: #fafafa;
+  --secondary-system-bg: #f0f0f0;
+  --tertiary-system-bg: #e5e5e5;
+  --group-bg: #ffffff;
+  --label: #1e1e1e;
+  --secondary-label: rgba(30,30,30,.72);
+  --tertiary-label: rgba(30,30,30,.46);
+  --separator: rgba(0,0,0,.10);
+  --fill: rgba(0,0,0,.06);
+  --sheet: #ffffff;
+  --selected-pill: rgba(53,132,228,.15);
+}
+
+html[data-platform="gnome"] .tabbar-shell {
+  background: var(--secondary-system-bg);
+  border-right: 1px solid var(--separator);
+}
+
+html[data-platform="gnome"] .navigation-bar {
+  background: var(--secondary-system-bg);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+html[data-platform="gnome"] .navigation-inner {
+  height: 68px;
+}
+
+html[data-platform="gnome"] .tab-item {
+  border-radius: 9px;
+  min-height: 44px;
+}
+
+html[data-platform="gnome"] .tab-selection {
+  inset: 0;
+  border-radius: 9px;
+  background: var(--selected-pill);
+}
+
+html[data-platform="gnome"] .tab-item.selected {
+  color: var(--label);
+}
+
+html[data-platform="gnome"] .ios-icon-button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill);
+  box-shadow: none;
+}
+
+html[data-platform="gnome"] .ios-icon-button:hover,
+html[data-platform="gnome"] .ios-row:hover,
+html[data-platform="gnome"] .tab-item:hover {
+  background-color: color-mix(in srgb, var(--fill) 180%, transparent);
+}
+
+html[data-platform="gnome"] .profile-header,
+html[data-platform="gnome"] .ios-group,
+html[data-platform="gnome"] .community-card,
+html[data-platform="gnome"] .team-card,
+html[data-platform="gnome"] .history-copy,
+html[data-platform="gnome"] .partner-card {
+  border-radius: 12px;
+  border: 1px solid var(--separator);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+html[data-platform="gnome"] .refresh-button,
+html[data-platform="gnome"] .primary-action,
+html[data-platform="gnome"] .done-button {
+  border-radius: 8px;
+}
+
+html[data-platform="gnome"] .settings-sheet {
+  border-radius: 12px;
+  border: 1px solid var(--separator);
+  background: var(--sheet);
+  box-shadow: 0 22px 64px rgba(0,0,0,.34);
+}
+
+html[data-platform="gnome"] .sheet-backdrop {
+  background: rgba(0,0,0,.30);
+}
+
+html[data-platform="gnome"] .segmented-control {
+  border-radius: 10px;
+}
+
+html[data-platform="gnome"] .segmented-control button,
+html[data-platform="gnome"] .settings-list {
+  border-radius: 8px;
+}
+
+/* Desktop compact mode for narrow browser windows. */
+@media (max-width: 980px) {
+  html[data-platform="macos"],
+  html[data-platform="windows"],
+  html[data-platform="gnome"] {
+    --desktop-sidebar: 84px;
+  }
+
+  html[data-platform="macos"] .tabbar-shell,
+  html[data-platform="windows"] .tabbar-shell,
+  html[data-platform="gnome"] .tabbar-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  html[data-platform="macos"] .tab-label,
+  html[data-platform="windows"] .tab-label,
+  html[data-platform="gnome"] .tab-label {
+    display: none;
+  }
+
+  html[data-platform="macos"] .tab-content,
+  html[data-platform="windows"] .tab-content,
+  html[data-platform="gnome"] .tab-content {
+    justify-content: center;
+  }
+
+  html[data-platform="macos"] .tab-item,
+  html[data-platform="windows"] .tab-item,
+  html[data-platform="gnome"] .tab-item {
+    padding: 0;
+  }
+
+  html[data-platform="macos"] .route-home,
+  html[data-platform="windows"] .route-home,
+  html[data-platform="gnome"] .route-home,
+  html[data-platform="macos"] .route-about,
+  html[data-platform="windows"] .route-about,
+  html[data-platform="gnome"] .route-about {
+    display: block;
+  }
+
+  html[data-platform="macos"] .route-home > .content-section,
+  html[data-platform="windows"] .route-home > .content-section,
+  html[data-platform="gnome"] .route-home > .content-section,
+  html[data-platform="macos"] .route-about > .content-section,
+  html[data-platform="windows"] .route-about > .content-section,
+  html[data-platform="gnome"] .route-about > .content-section {
+    margin-top: 24px;
+  }
+}

@@ -13,7 +13,7 @@ export function ScreenSurface({ route, language, t, followers, dashboard, loadin
 
   return <div className="screen-surface">
     <NavigationBar title={t("title")} onShare={share} onSettings={onSettings} onBack={isDetail ? onBack : undefined} backLabel={t("back")}/>
-    <div className="app-scroll"><main className="phone-canvas">
+    <div className="app-scroll"><main className={`phone-canvas route-${route}`}>
       {route === "home" && <HomePage t={t} followers={followers} dashboard={dashboard} loading={loading} refresh={refresh}/>} 
       {route === "social" && <SocialPage t={t} followers={followers} loading={loading} refresh={refresh}/>} 
       {route === "about" && <AboutPage t={t} open={openDetail}/>} 

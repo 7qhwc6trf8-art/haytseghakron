@@ -16,6 +16,20 @@ export function SettingsSheet({ open, onClose, language, setLanguage, appearance
     {key:"system" as const,icon:Settings2},
   ];
 
+  const desktop = platform === "macos" || platform === "windows" || platform === "gnome";
+  const panelInitial = desktop ? { opacity: 0, scale: 0.965, y: 10 } : { opacity: 1, scale: 1, y: "100%" };
+  const panelAnimate = { opacity: 1, scale: 1, y: 0 };
+  const panelExit = desktop ? { opacity: 0, scale: 0.975, y: 8 } : { opacity: 1, scale: 1, y: "100%" };
+  const panelTransition = platform === "android"
+    ? {duration:.28,ease:[.2,0,0,1] as const}
+    : platform === "windows"
+      ? {duration:.2,ease:[.1,.9,.2,1] as const}
+      : platform === "gnome"
+        ? {duration:.22,ease:[.25,.1,.25,1] as const}
+        : platform === "macos"
+          ? {duration:.24,ease:[.22,.78,.18,1] as const}
+          : {duration:.34,ease:[.32,.72,0,1] as const};
+
   return <AnimatePresence>{open && <>
     <motion.button
       className="sheet-backdrop"
@@ -24,17 +38,17 @@ export function SettingsSheet({ open, onClose, language, setLanguage, appearance
       initial={{opacity:0}}
       animate={{opacity:1}}
       exit={{opacity:0}}
-      transition={{duration:.2,ease:"easeOut"}}
+      transition={{duration:.18,ease:"easeOut"}}
     />
     <motion.aside
       className="settings-sheet"
       role="dialog"
       aria-modal="true"
       aria-label={t("settings")}
-      initial={{y:"100%"}}
-      animate={{y:0}}
-      exit={{y:"100%"}}
-      transition={platform === "android" ? {duration:.28,ease:[.2,0,0,1]} : {duration:.34,ease:[.32,.72,0,1]}}
+      initial={panelInitial}
+      animate={panelAnimate}
+      exit={panelExit}
+      transition={panelTransition}
     >
       <div className="sheet-grabber"/>
       <div className="sheet-navigation">

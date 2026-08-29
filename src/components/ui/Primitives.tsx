@@ -4,6 +4,9 @@ import { ChevronRight } from "lucide-react";
 
 export const iosSpring = { type: "spring", stiffness: 430, damping: 39, mass: 0.72 } as const;
 export const androidMotion = { duration: 0.22, ease: [0.2, 0, 0, 1] } as const;
+export const macMotion = { duration: 0.22, ease: [0.22, 0.78, 0.18, 1] } as const;
+export const windowsMotion = { duration: 0.18, ease: [0.1, 0.9, 0.2, 1] } as const;
+export const gnomeMotion = { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] } as const;
 const pageEase = [0.22, 0.82, 0.22, 1] as const;
 
 export function AnimatedNumber({ value }: { value: number }) {

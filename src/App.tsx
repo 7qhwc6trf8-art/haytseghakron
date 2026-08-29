@@ -12,7 +12,7 @@ import { ScreenSurface } from "./components/layout/ScreenSurface";
 import { NavigationStack, type NavigationDirection } from "./components/layout/NavigationStack";
 import { TabBar } from "./components/layout/TabBar";
 import { SettingsSheet } from "./components/settings/SettingsSheet";
-import { androidMotion, iosSpring } from "./components/ui/Primitives";
+import { androidMotion, gnomeMotion, iosSpring, macMotion, windowsMotion } from "./components/ui/Primitives";
 
 const tabOrder: TabKey[] = ["home", "social", "about"];
 
@@ -30,10 +30,16 @@ export default function App() {
   const t: Translator = (key) => copy[language][key] as string;
 
   useEffect(() => {
-    if (platform !== "android") return;
+    const themeColors = {
+      ios: isDark ? "#000000" : "#f2f2f7",
+      android: isDark ? "#111318" : "#f8f9ff",
+      macos: isDark ? "#1c1c1e" : "#f5f5f7",
+      windows: isDark ? "#202020" : "#f3f3f3",
+      gnome: isDark ? "#1e1e1e" : "#fafafa",
+    } as const;
     document.querySelector('meta[name="theme-color"]')?.setAttribute(
       "content",
-      isDark ? "#111318" : "#f8f9ff",
+      themeColors[platform],
     );
   }, [platform, isDark]);
 
@@ -105,8 +111,18 @@ export default function App() {
 
   const labels = useMemo(()=>({home:t("home"),social:t("social"),about:t("about")}),[language]);
 
+  const platformMotion = platform === "android"
+    ? androidMotion
+    : platform === "macos"
+      ? macMotion
+      : platform === "windows"
+        ? windowsMotion
+        : platform === "gnome"
+          ? gnomeMotion
+          : iosSpring;
+
   return (
-    <MotionConfig reducedMotion="user" transition={platform === "android" ? androidMotion : iosSpring}>
+    <MotionConfig reducedMotion="user" transition={platformMotion}>
       <div className={`app-shell platform-${platform}${settingsOpen ? " modal-open" : ""}`}>
         <NavigationStack route={route} direction={direction} platform={platform}>
           <ScreenSurface

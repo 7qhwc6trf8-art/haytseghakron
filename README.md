@@ -71,3 +71,15 @@ export default defineConfig([
   },
 ])
 ```
+
+## Adaptive platform UI
+
+The client now selects a native-inspired presentation automatically:
+
+- iPhone / iPad: iOS navigation and bottom tab bar
+- Android: Material 3 navigation bar and sheets
+- macOS / MacBook: macOS sidebar, toolbar, preferences dialog and desktop transitions
+- Windows: Windows 11 / Fluent NavigationView-style sidebar, controls and dialogs
+- Linux desktop: GNOME / libadwaita-inspired sidebar, header bar, controls and dialogs
+
+The application keeps one content/navigation model while presentation and motion are selected by `useDevicePlatform()`.
