@@ -30,7 +30,7 @@ import {
 import {
   FaFacebookF,
   FaInstagram,
-  FaTelegramPlane,
+  FaTelegram,
   FaTiktok,
   FaXTwitter,
 } from "react-icons/fa6";
@@ -186,7 +186,7 @@ const socialData = [
     name: "Telegram",
     handle: "@HayTseghakron",
     url: "https://t.me/HayTseghakron",
-    icon: FaTelegramPlane,
+    icon: FaTelegram,
     className: "telegram",
   },
   {
