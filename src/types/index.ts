@@ -1,7 +1,7 @@
 export type Language = "hy" | "en" | "ru";
 export type Appearance = "dark" | "light" | "system";
 export type TabKey = "home" | "social" | "about";
-export type DetailPageKey = "services" | "staff" | "history" | "contact" | "faq" | "news" | "partners" | "privacy";
+export type DetailPageKey = "services" | "staff" | "history" | "contact" | "faq" | "partners";
 export type RouteKey = TabKey | DetailPageKey;
 
 export interface FollowersData {
