@@ -122,11 +122,11 @@ a:focus-visible {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  will-change: transform, opacity;
+  will-change: transform;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  contain: layout paint;
+  contain: layout paint style;
 }
 
 .interactive-screen,
@@ -157,7 +157,7 @@ a:focus-visible {
   visibility: hidden;
   pointer-events: none;
   background: var(--system-bg);
-  will-change: transform, opacity;
+  will-change: transform;
   transform: translate3d(0, 0, 0);
 }
 
@@ -307,12 +307,11 @@ html[data-theme="dark"] .gesture-foreground {
   will-change: transform;
 }
 
-@supports ((-webkit-backdrop-filter: blur(16px)) or (backdrop-filter: blur(16px))) {
-  .ios-icon-button,
-  .liquid-tabbar {
-    -webkit-backdrop-filter: saturate(160%) blur(18px);
-    backdrop-filter: saturate(160%) blur(18px);
-  }
+/* Avoid backdrop-filter while pages move underneath: Safari otherwise repaints every frame. */
+.ios-icon-button,
+.liquid-tabbar {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .large-title-block {
@@ -802,7 +801,7 @@ html[data-theme="light"] .social-icon.threads {
 /* iOS 26 Liquid Glass tab bar, kept compact and GPU-cheap. */
 .tabbar-shell {
   position: absolute;
-  z-index: 75;
+  z-index: 200;
   left: 0;
   right: 0;
   bottom: 0;
@@ -826,7 +825,10 @@ html[data-theme="light"] .social-icon.threads {
   background: var(--glass);
   box-shadow: 0 12px 34px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   pointer-events: auto;
-  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint style;
 }
 
 .tab-item {
@@ -1111,4 +1113,61 @@ html[data-theme="light"] .social-icon.threads {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+
+/* Performance mode for constrained/mobile browsers. */
+@media (max-width: 760px) {
+  .stack-page-layer,
+  .gesture-foreground,
+  .gesture-underlay {
+    box-shadow: none;
+  }
+
+  .gesture-foreground::before {
+    content: "";
+    position: absolute;
+    z-index: 130;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background: rgba(255,255,255,.08);
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-page-layer,
+  .gesture-foreground,
+  .gesture-underlay,
+  .tab-icon,
+  .ios-icon-button {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Client hub + detail pages */
+.client-menu-row { width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.client-menu-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 34px; color: #fff; background: linear-gradient(145deg, #ff9f0a, #ff6b00); }
+.client-menu-row:nth-child(2) .client-menu-icon { background: linear-gradient(145deg, #0a84ff, #5268ff); }
+.client-menu-row:nth-child(3) .client-menu-icon { background: linear-gradient(145deg, #bf5af2, #7b61ff); }
+.client-menu-row:nth-child(4) .client-menu-icon { background: linear-gradient(145deg, #30d158, #00a86b); }
+.client-menu-row:nth-child(5) .client-menu-icon { background: linear-gradient(145deg, #64d2ff, #0a84ff); }
+.client-menu-row:nth-child(6) .client-menu-icon { background: linear-gradient(145deg, #ff453a, #ff2d55); }
+.client-menu-row:nth-child(7) .client-menu-icon { background: linear-gradient(145deg, #ffd60a, #ff9f0a); color: #1c1c1e; }
+.client-menu-row:nth-child(8) .client-menu-icon { background: linear-gradient(145deg, #8e8e93, #48484a); }
+.nav-back-button { border: 0; background: transparent; color: var(--ios-blue); display: flex; align-items: center; gap: 2px; padding: 8px 10px 8px 0; font-weight: 600; cursor: pointer; }
+.navigation-actions { margin-left: auto; }
+.detail-list { overflow: hidden; }
+.detail-item { display: grid; grid-template-columns: 42px 1fr; gap: 12px; padding: 18px 16px; border-bottom: 0.5px solid var(--separator); }
+.detail-item:last-child { border-bottom: 0; }
+.detail-number { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--fill); color: var(--secondary-label); font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+.detail-item h3 { margin: 1px 0 5px; font-size: 16px; }
+.detail-item p { margin: 0; color: var(--secondary-label); font-size: 14px; line-height: 1.45; }
+.primary-action { min-height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 700; color: #fff; background: var(--ios-blue); }
+@media (max-width: 768px) {
+  .stack-page-layer { will-change: transform; contain: layout paint style; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .client-menu-row, .detail-item { transform: translateZ(0); }
 }
