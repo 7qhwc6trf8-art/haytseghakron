@@ -4,6 +4,7 @@ import {
   MotionConfig,
   animate,
   motion,
+  useDragControls,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -30,7 +31,7 @@ import {
 import {
   FaFacebookF,
   FaInstagram,
-  FaTelegramPlane,
+  FaTelegram,
   FaTiktok,
   FaXTwitter,
 } from "react-icons/fa6";
@@ -163,7 +164,7 @@ const copy = {
 
 const socials = [
   { key: "instagram" as const, name: "Instagram", handle: "@haytseghakron", url: "https://instagram.com/haytseghakron", icon: FaInstagram, tone: "instagram" },
-  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegramPlane, tone: "telegram" },
+  { key: "telegram" as const, name: "Telegram", handle: "@HayTseghakron", url: "https://t.me/HayTseghakron", icon: FaTelegram, tone: "telegram" },
   { key: "twitter" as const, name: "X", handle: "@haytseghakron", url: "https://x.com/haytseghakron", icon: FaXTwitter, tone: "x" },
   { key: "threads" as const, name: "Threads", handle: "@haytseghakron", url: "https://threads.net/@haytseghakron", icon: TbBrandThreads, tone: "threads" },
   { key: "facebook" as const, name: "Facebook", handle: "HayTseghakron", url: "https://www.facebook.com/share/185yWbehcY/", icon: FaFacebookF, tone: "facebook" },
@@ -172,7 +173,6 @@ const socials = [
 
 const tabOrder: TabKey[] = ["home", "social", "about"];
 const iosSpring = { type: "spring", stiffness: 430, damping: 39, mass: 0.72 } as const;
-const pageSpring = { type: "spring", stiffness: 410, damping: 42, mass: 0.82 } as const;
 const sheetSpring = { type: "spring", stiffness: 390, damping: 40, mass: 0.9 } as const;
 const pageEase = [0.22, 0.82, 0.22, 1] as const;
 
@@ -262,10 +262,10 @@ function NavigationBar({ title, onShare, onSettings }: { title: string; onShare:
   return (
     <header className="navigation-bar">
       <div className="navigation-inner">
-        <motion.div className="navigation-brand" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
+        <div className="navigation-brand">
           <span className="navigation-logo"><img src="/haytseghakron-white-transparent.png" alt="" /></span>
           <strong>{title}</strong>
-        </motion.div>
+        </div>
         <div className="navigation-actions">
           <IconButton label="Share" onClick={onShare}><Share size={19} strokeWidth={2.15} /></IconButton>
           <IconButton label="Settings" onClick={onSettings}><Settings2 size={19} strokeWidth={2.15} /></IconButton>
@@ -286,14 +286,8 @@ function LargeTitle({ eyebrow, title, subtitle }: { eyebrow?: string; title: str
 }
 
 function ProfileHeader({ title, subtitle, live }: { title: string; subtitle: string; live: string }) {
-  const reduce = useReducedMotion();
   return (
-    <motion.section
-      className="profile-header"
-      initial={reduce ? false : { opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.34, ease: pageEase }}
-    >
+    <section className="profile-header">
       <div className="profile-avatar">
         <img src="/haytseghakron-white-transparent.png" alt="Hay Tseghakron" />
         <span className="presence-dot" />
@@ -303,7 +297,7 @@ function ProfileHeader({ title, subtitle, live }: { title: string; subtitle: str
         <p>{subtitle}</p>
         <span className="status-line"><i />{live}</span>
       </div>
-    </motion.section>
+    </section>
   );
 }
 
@@ -329,18 +323,12 @@ function Overview({ followers, dashboard, labels }: { followers: FollowersData; 
 
   return (
     <div className="ios-group overview-group">
-      {items.map(({ icon: Icon, value, label, tone }, index) => (
-        <motion.div
-          className="overview-row"
-          key={label}
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.24, delay: index * 0.035, ease: pageEase }}
-        >
+      {items.map(({ icon: Icon, value, label, tone }) => (
+        <div className="overview-row" key={label}>
           <span className={`row-symbol ${tone}`}><Icon size={19} strokeWidth={2.2} /></span>
           <span className="overview-label">{label}</span>
           <strong className="overview-value"><AnimatedNumber value={value} /></strong>
-        </motion.div>
+        </div>
       ))}
     </div>
   );
@@ -348,7 +336,7 @@ function Overview({ followers, dashboard, labels }: { followers: FollowersData; 
 
 function SocialList({ followers }: { followers: FollowersData }) {
   return (
-    <motion.div className="ios-group social-list" initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.025 } } }}>
+    <div className="ios-group social-list">
       {socials.map((item) => {
         const Icon = item.icon;
         const count = item.key === "facebook" ? 0 : followers[item.key];
@@ -359,7 +347,6 @@ function SocialList({ followers }: { followers: FollowersData }) {
             target="_blank"
             rel="noreferrer"
             className="ios-row social-row"
-            variants={{ hidden: { opacity: 0, x: 12 }, show: { opacity: 1, x: 0, transition: { duration: 0.23, ease: pageEase } } }}
             whileTap={{ scale: 0.985 }}
             transition={iosSpring}
           >
@@ -372,7 +359,7 @@ function SocialList({ followers }: { followers: FollowersData }) {
           </motion.a>
         );
       })}
-    </motion.div>
+    </div>
   );
 }
 
@@ -393,13 +380,13 @@ function RefreshButton({ loading, onClick, idle, busy }: { loading: boolean; onC
 
 function CommunityCard({ eyebrow, title, body, active247, growing, quote }: { eyebrow: string; title: string; body: string; active247: string; growing: string; quote: string }) {
   return (
-    <motion.section className="community-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: pageEase }}>
+    <section className="community-card">
       <span className="community-eyebrow">{eyebrow}</span>
       <h3>{title}</h3>
       <p>{body}</p>
       <div className="community-meta"><span><i />{active247}</span><span><Users size={14} />{growing}</span></div>
       <blockquote>“{quote}”</blockquote>
-    </motion.section>
+    </section>
   );
 }
 
@@ -425,12 +412,12 @@ function TabBar({ active, onSelect, labels }: { active: TabKey; onSelect: (tab: 
 
   return (
     <div className="tabbar-shell">
-      <motion.nav className="liquid-tabbar" initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ ...iosSpring, delay: 0.12 }}>
+      <nav className="liquid-tabbar">
         {tabs.map(({ key, icon: Icon }) => {
           const selected = active === key;
           return (
             <motion.button type="button" key={key} className={`tab-item${selected ? " selected" : ""}`} onClick={() => onSelect(key)} whileTap={{ scale: 0.9 }} transition={iosSpring}>
-              {selected && <motion.span className="tab-selection" layoutId="tab-selection" transition={iosSpring} />}
+              {selected && <span className="tab-selection" />}
               <span className="tab-content">
                 <motion.span className="tab-icon" animate={{ y: selected ? -1 : 0, scale: selected ? 1.03 : 1 }} transition={iosSpring}><Icon size={22} strokeWidth={selected ? 2.5 : 2.15} /></motion.span>
                 <span className="tab-label">{labels[key]}</span>
@@ -438,7 +425,7 @@ function TabBar({ active, onSelect, labels }: { active: TabKey; onSelect: (tab: 
             </motion.button>
           );
         })}
-      </motion.nav>
+      </nav>
     </div>
   );
 }
@@ -534,38 +521,233 @@ function SettingsSheet({ open, onClose, language, setLanguage, appearance, setAp
   );
 }
 
-const pageVariants = {
+const navEase = [0.32, 0.72, 0, 1] as const;
+const navTransition = { duration: 0.32, ease: navEase } as const;
+
+const stackVariants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? "100%" : direction < 0 ? "-30%" : 0,
-    opacity: direction < 0 ? 0.94 : 1,
-    scale: direction < 0 ? 0.985 : 1,
-    zIndex: direction > 0 ? 2 : 0,
+    x: direction > 0 ? "100%" : direction < 0 ? "-27%" : 0,
+    opacity: direction < 0 ? 0.9 : 1,
+    zIndex: direction > 0 ? 3 : direction < 0 ? 1 : 2,
   }),
   center: {
     x: 0,
     opacity: 1,
-    scale: 1,
-    zIndex: 1,
+    zIndex: 2,
   },
   exit: (direction: number) => ({
-    x: direction > 0 ? "-30%" : direction < 0 ? "100%" : 0,
-    opacity: direction > 0 ? 0.94 : 1,
-    scale: direction > 0 ? 0.985 : 1,
-    zIndex: direction < 0 ? 2 : 0,
+    x: direction > 0 ? "-27%" : direction < 0 ? "100%" : 0,
+    opacity: direction > 0 ? 0.9 : 1,
+    zIndex: direction < 0 ? 3 : 1,
   }),
 };
 
-function PageTransition({ direction, children }: React.PropsWithChildren<{ direction: number }>) {
+type Translator = (key: keyof typeof copy.en) => string;
+
+type ScreenSurfaceProps = {
+  tab: TabKey;
+  labels: Record<TabKey, string>;
+  followers: FollowersData;
+  dashboard: DashboardData | null;
+  loading: boolean;
+  refresh: () => void;
+  t: Translator;
+  share: () => void;
+  onSettings: () => void;
+  onSelect: (tab: TabKey) => void;
+  scrollTop?: number;
+  registerScroll?: (tab: TabKey, node: HTMLDivElement | null) => void;
+  onScroll?: (tab: TabKey, top: number) => void;
+};
+
+function ScreenSurface({
+  tab,
+  labels,
+  followers,
+  dashboard,
+  loading,
+  refresh,
+  t,
+  share,
+  onSettings,
+  onSelect,
+  scrollTop = 0,
+  registerScroll,
+  onScroll,
+}: ScreenSurfaceProps) {
+  const setScroller = (node: HTMLDivElement | null) => {
+    if (node) node.scrollTop = scrollTop;
+    registerScroll?.(tab, node);
+  };
+
+  return (
+    <div className="screen-surface">
+      <NavigationBar title={t("title")} onShare={share} onSettings={onSettings} />
+
+      <div
+        className="app-scroll"
+        ref={setScroller}
+        onScroll={(event) => onScroll?.(tab, event.currentTarget.scrollTop)}
+      >
+        <main className="phone-canvas">
+          {tab === "home" && (
+            <>
+              <LargeTitle title={t("home")} subtitle={t("subtitle")} />
+              <ProfileHeader title={t("title")} subtitle={t("subtitle")} live={t("live")} />
+
+              <section className="content-section">
+                <SectionHeader title={t("overview")} />
+                <Overview followers={followers} dashboard={dashboard} labels={[t("followers"), t("visits"), t("unique")]} />
+              </section>
+
+              <section className="content-section">
+                <SectionHeader title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
+                <SocialList followers={followers} />
+                <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
+              </section>
+
+              <section className="content-section">
+                <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
+              </section>
+            </>
+          )}
+
+          {tab === "social" && (
+            <>
+              <LargeTitle title={t("social")} subtitle={t("connectHint")} />
+              <section className="content-section first-section">
+                <SocialList followers={followers} />
+                <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
+              </section>
+            </>
+          )}
+
+          {tab === "about" && (
+            <>
+              <LargeTitle title={t("about")} subtitle={t("title")} />
+              <section className="content-section first-section">
+                <AboutPanel title={t("aboutTitle")} body={t("aboutBody")} />
+              </section>
+              <section className="content-section">
+                <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
+              </section>
+            </>
+          )}
+
+          <footer className="footer">
+            <span>© {new Date().getFullYear()} Hay Tseghakron</span>
+            {dashboard?.followers.lastUpdate && (
+              <span>{t("updated")} · {new Date(dashboard.followers.lastUpdate).toLocaleTimeString(document.documentElement.lang === "hy" ? "hy-AM" : document.documentElement.lang === "ru" ? "ru-RU" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+            )}
+          </footer>
+        </main>
+      </div>
+
+      <TabBar active={tab} onSelect={onSelect} labels={labels} />
+    </div>
+  );
+}
+
+type InteractiveScreenProps = ScreenSurfaceProps & {
+  previousTab: TabKey | null;
+  previousScrollTop: number;
+  onSwipeBack: (tab: TabKey) => void;
+};
+
+function InteractiveScreen({ previousTab, previousScrollTop, onSwipeBack, ...surfaceProps }: InteractiveScreenProps) {
+  const reduce = useReducedMotion();
+  const dragControls = useDragControls();
+  const foregroundX = useMotionValue(0);
+  const [gestureActive, setGestureActive] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => Math.max(320, window.innerWidth));
+
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(Math.max(320, window.innerWidth));
+    window.addEventListener("resize", updateWidth, { passive: true });
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  const progress = useTransform(foregroundX, [0, viewportWidth], [0, 1]);
+  const underlayX = useTransform(progress, (value) => -viewportWidth * 0.27 * (1 - Math.max(0, Math.min(1, value))));
+  const underlayOpacity = useTransform(progress, [0, 1], [0.9, 1]);
+  const dimOpacity = useTransform(progress, [0, 1], [0.1, 0]);
+
+  const cancelGesture = () => {
+    animate(foregroundX, 0, { type: "spring", stiffness: 520, damping: 46, mass: 0.72 }).then(() => {
+      setGestureActive(false);
+    });
+  };
+
+  const finishGesture = (target: TabKey) => {
+    animate(foregroundX, viewportWidth, { duration: 0.18, ease: navEase }).then(() => {
+      onSwipeBack(target);
+    });
+  };
+
+  return (
+    <div className="interactive-screen">
+      {previousTab && (
+        <motion.div
+          className={`gesture-underlay${gestureActive ? " is-visible" : ""}`}
+          style={{ x: underlayX, opacity: underlayOpacity }}
+          aria-hidden="true"
+        >
+          <ScreenSurface
+            {...surfaceProps}
+            tab={previousTab}
+            scrollTop={previousScrollTop}
+            registerScroll={undefined}
+            onScroll={undefined}
+          />
+          <motion.div className="gesture-dimmer" style={{ opacity: dimOpacity }} />
+        </motion.div>
+      )}
+
+      <motion.div
+        className="gesture-foreground"
+        style={{ x: foregroundX }}
+        drag={!reduce && previousTab ? "x" : false}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ left: 0, right: viewportWidth }}
+        dragElastic={0}
+        dragMomentum={false}
+        onDragStart={() => setGestureActive(true)}
+        onDragEnd={(_, info) => {
+          if (!previousTab) return;
+          const shouldFinish = info.offset.x > viewportWidth * 0.3 || info.velocity.x > 680;
+          if (shouldFinish) finishGesture(previousTab);
+          else cancelGesture();
+        }}
+      >
+        <ScreenSurface {...surfaceProps} />
+        {previousTab && !reduce && (
+          <div
+            className="swipe-back-edge"
+            aria-hidden="true"
+            onPointerDown={(event) => {
+              if (event.button !== 0 && event.pointerType === "mouse") return;
+              setGestureActive(true);
+              dragControls.start(event);
+            }}
+          />
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+function StackTransition({ direction, children }: React.PropsWithChildren<{ direction: number }>) {
   const reduce = useReducedMotion();
   return (
     <motion.div
-      className="ios-page"
+      className="stack-page-layer"
       custom={direction}
-      variants={reduce ? undefined : pageVariants}
+      variants={reduce ? undefined : stackVariants}
       initial={reduce ? false : "enter"}
       animate={reduce ? undefined : "center"}
       exit={reduce ? undefined : "exit"}
-      transition={reduce ? { duration: 0 } : pageSpring}
+      transition={reduce || direction === 0 ? { duration: 0 } : navTransition}
     >
       {children}
     </motion.div>
@@ -574,18 +756,20 @@ function PageTransition({ direction, children }: React.PropsWithChildren<{ direc
 
 export default function App() {
   useIOSViewport();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRefs = useRef<Partial<Record<TabKey, HTMLDivElement | null>>>({});
+  const scrollPositions = useRef<Record<TabKey, number>>({ home: 0, social: 0, about: 0 });
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem("ht-language") as Language) || "hy");
   const [appearance, setAppearance] = useState<Appearance>(() => (localStorage.getItem("ht-appearance") as Appearance) || "system");
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("home");
   const [direction, setDirection] = useState(0);
+  const [navHistory, setNavHistory] = useState<TabKey[]>(["home"]);
   const [loading, setLoading] = useState(false);
   const [followers, setFollowers] = useState<FollowersData>({ instagram: 1482, telegram: 251, twitter: 2, tiktok: 459, threads: 0 });
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
 
-  const t = (key: keyof typeof copy.en) => copy[language][key] as string;
+  const t: Translator = (key) => copy[language][key] as string;
   const isDark = appearance === "dark" || (appearance === "system" && systemDark);
 
   useEffect(() => {
@@ -606,14 +790,14 @@ export default function App() {
   }, [appearance, isDark, language]);
 
   useEffect(() => {
-    const scroller = scrollRef.current;
+    const scroller = scrollRefs.current[activeTab];
     if (!scroller) return;
     const previousOverflow = scroller.style.overflowY;
     if (settingsOpen) scroller.style.overflowY = "hidden";
     return () => {
       scroller.style.overflowY = previousOverflow;
     };
-  }, [settingsOpen]);
+  }, [activeTab, settingsOpen]);
 
   useEffect(() => {
     trackVisit();
@@ -654,86 +838,83 @@ export default function App() {
 
   const selectTab = (next: TabKey) => {
     if (next === activeTab) {
-      scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      scrollRefs.current[activeTab]?.scrollTo({ top: 0, behavior: "smooth" });
+      scrollPositions.current[activeTab] = 0;
       return;
     }
+
     const currentIndex = tabOrder.indexOf(activeTab);
     const nextIndex = tabOrder.indexOf(next);
     setDirection(nextIndex > currentIndex ? 1 : -1);
+
+    setNavHistory((history) => {
+      const existingIndex = history.lastIndexOf(next);
+      if (existingIndex >= 0) return history.slice(0, existingIndex + 1);
+      return [...history, next];
+    });
+
     setActiveTab(next);
-    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "auto" }));
+  };
+
+  const swipeBack = (target: TabKey) => {
+    setDirection(0);
+    setNavHistory((history) => (history.length > 1 ? history.slice(0, -1) : history));
+    setActiveTab(target);
   };
 
   const labels = useMemo(() => ({ home: t("home"), social: t("social"), about: t("about") }), [language]);
+  const previousTab = navHistory.length > 1 ? navHistory[navHistory.length - 2] : null;
+
+  const registerScroll = (tab: TabKey, node: HTMLDivElement | null) => {
+    scrollRefs.current[tab] = node;
+  };
+
+  const rememberScroll = (tab: TabKey, top: number) => {
+    scrollPositions.current[tab] = top;
+  };
+
+  const surfaceProps: Omit<InteractiveScreenProps, "tab" | "previousTab" | "previousScrollTop" | "onSwipeBack"> = {
+    labels,
+    followers,
+    dashboard,
+    loading,
+    refresh,
+    t,
+    share,
+    onSettings: () => setSettingsOpen(true),
+    onSelect: selectTab,
+    scrollTop: scrollPositions.current[activeTab],
+    registerScroll,
+    onScroll: rememberScroll,
+  };
 
   return (
     <MotionConfig reducedMotion="user" transition={iosSpring}>
       <div className="app-shell">
-        <NavigationBar title={t("title")} onShare={share} onSettings={() => setSettingsOpen(true)} />
-
-        <div className="app-scroll" ref={scrollRef}>
-          <main className="phone-canvas">
-            <div className="page-stage">
-              <AnimatePresence mode="sync" initial={false} custom={direction}>
-                <PageTransition key={activeTab} direction={direction}>
-                  {activeTab === "home" && (
-                    <>
-                      <LargeTitle title={t("home")} subtitle={t("subtitle")} />
-                      <ProfileHeader title={t("title")} subtitle={t("subtitle")} live={t("live")} />
-
-                      <section className="content-section">
-                        <SectionHeader title={t("overview")} />
-                        <Overview followers={followers} dashboard={dashboard} labels={[t("followers"), t("visits"), t("unique")]} />
-                      </section>
-
-                      <section className="content-section">
-                        <SectionHeader title={t("connect")} subtitle={t("connectHint")} trailing={t("official")} />
-                        <SocialList followers={followers} />
-                        <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
-                      </section>
-
-                      <section className="content-section">
-                        <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
-                      </section>
-                    </>
-                  )}
-
-                  {activeTab === "social" && (
-                    <>
-                      <LargeTitle title={t("social")} subtitle={t("connectHint")} />
-                      <section className="content-section first-section">
-                        <SocialList followers={followers} />
-                        <RefreshButton loading={loading} onClick={refresh} idle={t("refresh")} busy={t("refreshing")} />
-                      </section>
-                    </>
-                  )}
-
-                  {activeTab === "about" && (
-                    <>
-                      <LargeTitle title={t("about")} subtitle={t("title")} />
-                      <section className="content-section first-section">
-                        <AboutPanel title={t("aboutTitle")} body={t("aboutBody")} />
-                      </section>
-                      <section className="content-section">
-                        <CommunityCard eyebrow={t("community")} title={t("communityTitle")} body={t("communityBody")} active247={t("active247")} growing={t("growing")} quote={t("quote")} />
-                      </section>
-                    </>
-                  )}
-                </PageTransition>
-              </AnimatePresence>
-            </div>
-
-            <footer className="footer">
-              <span>© {new Date().getFullYear()} Hay Tseghakron</span>
-              {dashboard?.followers.lastUpdate && (
-                <span>{t("updated")} · {new Date(dashboard.followers.lastUpdate).toLocaleTimeString(language === "hy" ? "hy-AM" : language === "ru" ? "ru-RU" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-              )}
-            </footer>
-          </main>
+        <div className="stack-viewport">
+          <AnimatePresence mode="sync" initial={false} custom={direction}>
+            <StackTransition key={activeTab} direction={direction}>
+              <InteractiveScreen
+                {...surfaceProps}
+                tab={activeTab}
+                scrollTop={scrollPositions.current[activeTab]}
+                previousTab={previousTab}
+                previousScrollTop={previousTab ? scrollPositions.current[previousTab] : 0}
+                onSwipeBack={swipeBack}
+              />
+            </StackTransition>
+          </AnimatePresence>
         </div>
 
-        <TabBar active={activeTab} onSelect={selectTab} labels={labels} />
-        <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} language={language} setLanguage={setLanguage} appearance={appearance} setAppearance={setAppearance} t={t} />
+        <SettingsSheet
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          language={language}
+          setLanguage={setLanguage}
+          appearance={appearance}
+          setAppearance={setAppearance}
+          t={t}
+        />
       </div>
     </MotionConfig>
   );

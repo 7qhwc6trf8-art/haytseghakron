@@ -104,6 +104,103 @@ a:focus-visible {
   isolation: isolate;
 }
 
+
+/* Native iOS NavigationStack-style full-screen compositor. */
+.stack-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--system-bg);
+  isolation: isolate;
+  touch-action: pan-y;
+}
+
+.stack-page-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
+}
+
+.interactive-screen,
+.gesture-foreground,
+.gesture-underlay,
+.screen-surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.interactive-screen {
+  background: var(--system-bg);
+}
+
+.screen-surface {
+  background: var(--system-bg);
+  color: var(--label);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.gesture-underlay {
+  z-index: 1;
+  visibility: hidden;
+  pointer-events: none;
+  background: var(--system-bg);
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+}
+
+.gesture-underlay.is-visible {
+  visibility: visible;
+}
+
+.gesture-foreground {
+  z-index: 2;
+  background: var(--system-bg);
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  box-shadow: -15px 0 34px rgba(0, 0, 0, 0.24);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+html[data-theme="dark"] .gesture-foreground {
+  box-shadow: -15px 0 38px rgba(0, 0, 0, 0.62);
+}
+
+.gesture-dimmer {
+  position: absolute;
+  z-index: 105;
+  inset: 0;
+  pointer-events: none;
+  background: #000;
+  will-change: opacity;
+}
+
+.swipe-back-edge {
+  position: absolute;
+  z-index: 120;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 28px;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .app-scroll {
   position: absolute;
   inset: 0;
@@ -247,10 +344,22 @@ a:focus-visible {
   letter-spacing: -0.08px;
 }
 
-.ios-page {
+.page-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
   min-width: 0;
+}
+
+.ios-page {
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 0;
+  align-self: start;
   will-change: transform, opacity;
   transform-origin: 50% 24%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .profile-header {
